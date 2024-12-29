@@ -21,21 +21,30 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Nueva foto',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />
+            <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} color={color} size={24} />
           ),
         }}
       />
       <Tabs.Screen
-        name="about"
+        name="gallery"
         options={{
-          title: 'About',
+          title: 'Galería',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24}/>
+            <Ionicons name={focused ? 'images' : 'images-outline'} color={color} size={24}/>
           ),
         }}
       />
+      <Tabs.Screen
+        name="options"
+        options={{
+          title: 'Opciones',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} color={color} size={24} />
+          ),
+        }}>
+      </Tabs.Screen>
     </Tabs>
   );
 }
