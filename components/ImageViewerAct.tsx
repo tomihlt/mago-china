@@ -1,7 +1,8 @@
-import { StyleSheet, View, ImageStyle, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ImageStyle, Pressable, Alert, Animated } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { Dimensions } from 'react-native';
 
 // Usa require para cargar la imagen local
 const noPhoto = require('@/assets/images/noPhoto.png');
@@ -14,6 +15,7 @@ type Props = {
 
 export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [opacity] = useState(new Animated.Value(1)); // Control de opacidad
 
   const handlePress = async () => {
     try {
@@ -44,15 +46,37 @@ export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
       Alert.alert('Error', 'No se pudo abrir la cámara.');
     }
   };
-  
+
+  // Manejo de opacidad al presionar
+  const handlePressIn = () => {
+    Animated.timing(opacity, {
+      toValue: 0.3,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <View>
-      <Pressable onPress={onPress || handlePress}>
-        <Image 
-          source={photoUri ? { uri: photoUri } : imgUrl ? { uri: imgUrl } : noPhoto}
-          style={[styles.imgStyle, style]}
-        />
+      <Pressable
+        onPress={onPress || handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <Animated.View style={{ opacity }}>
+          <Image 
+            source={photoUri ? { uri: photoUri } : imgUrl ? { uri: imgUrl } : noPhoto}
+            style={[styles.imgStyle, style]}
+          />
+        </Animated.View>
       </Pressable>
     </View>
   );
@@ -61,7 +85,7 @@ export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
 const styles = StyleSheet.create({
   imgStyle: {
     resizeMode: 'cover',
-    width: 300,
+    width: Dimensions.get('window').width - 40,
     height: 300,
   },
 });

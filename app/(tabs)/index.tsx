@@ -33,17 +33,16 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   imageContainer: {
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
-    
+    borderWidth: 1,
+    borderColor: 'rgb(58, 58, 58)',
+    width: '100%',
+    alignItems: 'center',
   },
   formContainer: {
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
-    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgb(58, 58, 58)',
     width: '100%',
-    flex: 1
+    flex: 1,
+    height: 1000,
   },
 });
