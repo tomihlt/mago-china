@@ -7,13 +7,15 @@ const noPhoto = require('@/assets/images/noPhoto.png');
 
 export default function Index() {
 
+  const [image, setImage] = useState<string | null>(null);
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <ImageViewerAct/>
+        <ImageViewerAct img={image} setImage={setImage}/>
       </View>
       <View style={styles.formContainer}>
-        <DataForm/>
+        <DataForm setImage={setImage}/>
       </View>
     </View>
   );

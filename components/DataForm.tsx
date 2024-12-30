@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import BottomButtons from './BottomButtons';
 
-export default function DataForm() {
+export default function DataForm({ setImage }: { setImage: (image: string | null) => void }) {
 
   // Estados para los campos del formulario
   const [nombreProveedor, setNombreProveedor] = useState('');
@@ -15,6 +15,7 @@ export default function DataForm() {
   // Función para resetear los valores del formulario
   const resetForm = () => {
     console.log('Formulario reiniciado');
+    setImage(null);
     setNombreProveedor('');
     setCodigo('');
     setDescripcion('');

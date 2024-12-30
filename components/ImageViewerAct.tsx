@@ -11,10 +11,12 @@ type Props = {
   imgUrl?: ImageSource;
   style?: ImageStyle;
   onPress?: () => void;
+  img: string | null;
+  setImage: (image: string) => void;
 };
 
-export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+export default function ImageViewerAct({ imgUrl, style, onPress, img, setImage }: Props) {
+  //const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [opacity] = useState(new Animated.Value(1)); // Control de opacidad
 
   const handlePress = async () => {
@@ -39,7 +41,7 @@ export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
       }
   
       if (result.assets && result.assets.length > 0) {
-        setPhotoUri(result.assets[0].uri);
+        setImage(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Error al abrir la cámara:', error);
@@ -73,7 +75,7 @@ export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
       >
         <Animated.View style={{ opacity }}>
           <Image 
-            source={photoUri ? { uri: photoUri } : imgUrl ? { uri: imgUrl } : noPhoto}
+            source={img ? { uri: img } : imgUrl ? { uri: imgUrl } : noPhoto}
             style={[styles.imgStyle, style]}
           />
         </Animated.View>
