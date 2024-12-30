@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-export default function BottomButtons() {
+type BottomButtonsProps = {
+  onPress?: () => void; // 'onPress' es una función que no recibe parámetros y no devuelve nada
+};
+
+export default function BottomButtons({ resetForm } : { resetForm : BottomButtonsProps['onPress'] }) {
   const [isPressedReset, setIsPressedReset] = useState(false);
   const [isPressedAccept, setIsPressedAccept] = useState(false);
 
@@ -21,7 +25,7 @@ export default function BottomButtons() {
           styles.buttonReset,
           isPressedReset && styles.buttonPressed, // Estilo dinámico
         ]}
-        onPress={handleButton1Press}
+        onPress={resetForm}
         onPressIn={() => setIsPressedReset(true)} // Activa el efecto al presionar
         onPressOut={() => setIsPressedReset(false)} // Desactiva el efecto al soltar
       >

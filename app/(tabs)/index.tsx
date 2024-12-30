@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Text, View, StyleSheet, Image } from 'react-native';
 
 import ImageViewerAct from '@/components/ImageViewerAct';
 import DataForm from '@/components/DataForm';
+const noPhoto = require('@/assets/images/noPhoto.png');
 
 export default function Index() {
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
