@@ -43,6 +43,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(58, 58, 58)',
     width: '100%',
     flex: 1,
-    height: 1000,
   },
 });
