@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, Image } from 'react-native';
 
 import ImageViewerAct from '@/components/ImageViewerAct';
+import DataForm from '@/components/DataForm';
 
 export default function Index() {
   return (
@@ -9,7 +10,7 @@ export default function Index() {
         <ImageViewerAct/>
       </View>
       <View style={styles.formContainer}>
-        <Text>Form</Text>
+        <DataForm/>
       </View>
     </View>
   );
@@ -43,6 +44,6 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
     marginTop: 20,
     width: '100%',
-    flex:5
+    flex: 1
   },
 });
