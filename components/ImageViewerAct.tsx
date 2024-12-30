@@ -1,7 +1,7 @@
 import { StyleSheet, View, ImageStyle, Pressable, Alert } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import { useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
+import ImagePicker from 'expo-image-picker';
 
 // Usa require para cargar la imagen local
 const noPhoto = require('@/assets/images/noPhoto.png');
