@@ -59,6 +59,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', // Espacio entre botones
     alignItems: 'center', // Centra verticalmente
     paddingHorizontal: 20, // Espaciado horizontal interno
+    marginTop: 20,
+    marginBottom: 20,
   },
   buttonReset: {
     //flex: 1,

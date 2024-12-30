@@ -84,7 +84,7 @@ export default function ImageViewerAct({ imgUrl, style, onPress }: Props) {
 
 const styles = StyleSheet.create({
   imgStyle: {
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     width: Dimensions.get('window').width - 40,
     height: 300,
   },
