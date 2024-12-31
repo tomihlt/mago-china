@@ -4,6 +4,13 @@ import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function App() {
+
+  // Efectos
+  const [isPressedR, setIsPressedR] = useState(false); // Estado para saber si el botón de reset está presionado
+  const [isPressedA, setIsPressedA] = useState(false); // Estado para saber si el botón de aceptar está presionado
+  const [imagePressed, setImagePressed] = useState(false); // Estado para saber si la imagen está presionada
+
+
   const [image, setImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombreProveedor: '',
@@ -64,11 +71,13 @@ export default function App() {
   return (
     <View style={styles.container}>
       {/* Image Viewer */}
-      <Pressable onPress={handleImagePick}>
-        <Animated.Image
-          source={image ? { uri: image } : require('@/assets/images/noPhoto.png')}
-          style={styles.image}
-        />
+      <Pressable onPress={handleImagePick} onPressIn={() => setImagePressed(true)} onPressOut={() => setImagePressed(false)}>
+        <View style={[styles.imageContainer, imagePressed && styles.imagePressed]}>
+          <Animated.Image
+            source={image ? { uri: image } : require('@/assets/images/noPhoto.png')}
+            style={styles.image}
+          />
+        </View>
       </Pressable>
 
       {/* Formulario */}
@@ -121,11 +130,11 @@ export default function App() {
 
         {/* Botones */}
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.resetButton} onPress={resetForm}>
+          <Pressable style={[styles.resetButton, isPressedR && styles.buttonIsPressed]} onPress={resetForm} onPressIn={() => setIsPressedR(true)} onPressOut={() => setIsPressedR(false)}>
             <Ionicons name="reload" size={20} color="rgb(255, 192, 75)" />
             <Text style={styles.buttonTextReset}>Resetear</Text>
           </Pressable>
-          <Pressable style={styles.acceptButton} onPress={handleAccept}>
+          <Pressable style={[styles.acceptButton, isPressedA && styles.buttonIsPressed]} onPress={handleAccept} onPressIn={() => setIsPressedA(true)} onPressOut={() => setIsPressedA(false)}>
             <Ionicons name="checkmark" size={20} color="rgb(81, 196, 71)" />
             <Text style={styles.buttonTextAccept}>Aceptar</Text>
           </Pressable>
@@ -137,7 +146,9 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#25292e' },
-  image: { width: Dimensions.get('window').width - 40, height: 300, resizeMode: 'contain' },
+  imageContainer: { position: 'relative', width: Dimensions.get('window').width - 40, height: 300, margin: 'auto', },
+  image: { width: Dimensions.get('window').width - 40, height: 300, resizeMode: 'contain', margin:'auto' },
+  imagePressed: { backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: 10, }, // Opcional: para que tenga bordes redondeados
   formContainer: { padding: 20 },
   title: { color: '#fff', fontSize: 20, marginTop: 10,marginBottom: 10, textAlign: 'center', margin: 'auto', backgroundColor: 'rgba(24, 24, 24, 0.64)', width: '100%'},
   label: { color: '#fff', marginBottom: 5 },
@@ -147,4 +158,5 @@ const styles = StyleSheet.create({
   acceptButton: { flexDirection: 'row', alignItems: 'center', padding: 10, borderColor: 'rgb(81, 196, 71)', borderWidth: 1 },
   buttonTextReset: { color: 'rgb(255, 192, 75)', marginLeft: 5 },
   buttonTextAccept: { color: 'rgb(81, 196, 71)', marginLeft: 5 },
+  buttonIsPressed: { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
 });
