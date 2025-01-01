@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView, Animated, Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library'; // Importa MediaLibrary
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function App() {
@@ -50,10 +51,39 @@ export default function App() {
     }
   };
 
+  // Función para guardar la imagen en la galería
+  const saveImageToGallery = async () => {
+    if (!image) {
+      Alert.alert('Error', 'No hay una imagen para guardar.');
+      return;
+    }
+
+    try {
+      // Solicitar permisos para acceder a la galería
+      const { granted } = await MediaLibrary.requestPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Permiso requerido', 'Se necesita acceso al almacenamiento para guardar la imagen.');
+        return;
+      }
+
+      // Guardar la imagen en la galería
+      const asset = await MediaLibrary.createAssetAsync(image);
+      await MediaLibrary.createAlbumAsync('MyAppImages', asset, false); // Puedes cambiar "MyAppImages" por otro nombre de álbum
+      Alert.alert('Éxito', 'La imagen se guardó en la galería.');
+      resetForm();
+    } catch (error) {
+      console.error('Error al guardar la imagen:', error);
+      Alert.alert('Error', 'No se pudo guardar la imagen.');
+    }
+
+  };
+
   const handleAccept = () => {
     console.log('Datos enviados:');
     console.log('Imagen:', image);
     console.log('Formulario:', formData);
+
+    saveImageToGallery();
   };
 
   const resetForm = () => {
