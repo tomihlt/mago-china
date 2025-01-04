@@ -10,6 +10,7 @@ export default function App() {
   const [isPressedR, setIsPressedR] = useState(false); // Estado para saber si el botón de reset está presionado
   const [isPressedA, setIsPressedA] = useState(false); // Estado para saber si el botón de aceptar está presionado
   const [imagePressed, setImagePressed] = useState(false); // Estado para saber si la imagen está presionada
+  const [takenFromGallery, setTakenFromGallery] = useState(false); // Estado para saber si la imagen fue tomada de la galería
 
 
   const [image, setImage] = useState<string | null>(null);
@@ -22,7 +23,32 @@ export default function App() {
     cubicaje: '',
   });
 
-  const handleImagePick = async () => {
+  const pickImageFromGallery = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permiso requerido', 'Se necesita acceso a la galería para seleccionar una imagen.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setTakenFromGallery(true);
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error al abrir la galería:', error);
+      Alert.alert('Error', 'No se pudo abrir la galería.');
+    }
+  };
+
+  const takePhotoWithCamera = async () => {
     try {
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       if (!permissionResult.granted) {
@@ -37,12 +63,8 @@ export default function App() {
         quality: 0.7,
       });
 
-      if (result.canceled) {
-        console.log('El usuario canceló la acción de la cámara.');
-        return;
-      }
-
-      if (result.assets && result.assets.length > 0) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setTakenFromGallery(false);
         setImage(result.assets[0].uri);
       }
     } catch (error) {
@@ -50,6 +72,20 @@ export default function App() {
       Alert.alert('Error', 'No se pudo abrir la cámara.');
     }
   };
+
+  const handleImagePick = () => {
+    Alert.alert(
+      'Seleccionar Imagen',
+      '¿Qué acción deseas realizar?',
+      [
+        { text: 'Tomar Foto', onPress: takePhotoWithCamera },
+        { text: 'Elegir de la Galería', onPress: pickImageFromGallery },
+        { text: 'Cancelar', style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
+  };
+
 
   // Función para guardar la imagen en la galería
   const saveImageToGallery = async () => {
@@ -67,6 +103,10 @@ export default function App() {
       }
 
       // Guardar la imagen en la galería
+      if(takenFromGallery) {
+        resetForm();
+        return;
+      }
       const asset = await MediaLibrary.createAssetAsync(image);
       await MediaLibrary.createAlbumAsync('MyAppImages', asset, false); // Puedes cambiar "MyAppImages" por otro nombre de álbum
       Alert.alert('Éxito', 'La imagen se guardó en la galería.');
