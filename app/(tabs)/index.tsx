@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView, Animat
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library'; // Importa MediaLibrary
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { saveImage } from '@/services/saveImage';
 
 export default function App() {
 
@@ -108,7 +109,7 @@ export default function App() {
         return;
       }
       const asset = await MediaLibrary.createAssetAsync(image);
-      await MediaLibrary.createAlbumAsync('MyAppImages', asset, false); // Puedes cambiar "MyAppImages" por otro nombre de álbum
+      await MediaLibrary.createAlbumAsync('MyAppImages', asset, false); // cambiar "MyAppImages" por el nombre del proyecto (cuando se implemente, las imagenes de la galaria no estan en ese album)
       Alert.alert('Éxito', 'La imagen se guardó en la galería.');
       resetForm();
     } catch (error) {
@@ -124,6 +125,8 @@ export default function App() {
     console.log('Formulario:', formData);
 
     saveImageToGallery();
+    saveImage({ image: image || '', form: formData });
+
   };
 
   const resetForm = () => {
