@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, FlatList, Animated, Pressable, Dimensions } from 'react-native';
-import { loadImages } from '@/services/saveImage'; // Asegúrate de que esta función cargue todas las imágenes.
+import { loadImages, deleteImage } from '@/services/dataController'; // Asegúrate de que esta función cargue todas las imágenes.
 import { useFocusEffect } from '@react-navigation/native'; // Importa el hook
+import objectHash from 'object-hash';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function GalleryScreen() {
-  const [images, setImages] = useState<{ image: string; form: any }[]>([]);
+  const [images, setImages] = useState<{ image: string; form: any; objHash: string }[]>([]);
 
   // Cargar las imágenes cada vez que la pantalla gana foco
   useFocusEffect(
@@ -42,9 +44,22 @@ export default function GalleryScreen() {
     fetchData(); // Llamada a la función asíncrona
   }, []); // Solo ejecutarse una vez al montar el componente*/}
 
+  // Función para eliminar una imagen
+  const handleDeleteImage = async (objHash: string) => {
+    try {
+      // Eliminar la imagen del almacenamiento
+      await deleteImage(objHash);
+      // Actualizar el estado para reflejar la eliminación
+      const updatedImages = images.filter(image => image.objHash !== objHash);
+      setImages(updatedImages); // Re-renderizar el componente con las imágenes restantes
+    } catch (error) {
+      console.error('Error al eliminar la imagen:', error);
+    }
+  };
+
   // Función para renderizar cada imagen en la lista
-  const renderItem = ({ item }: { item: { image: string; form: any } }) => (
-    <Pressable style={styles.imageContainer} onPress={() => console.log(item.form.nombreProveedor)}>
+  const renderItem = ({ item }: { item: { image: string; form: any; objHash: string } }) => (
+    <Pressable style={styles.imageContainer} onPress={() => handleDeleteImage(item.objHash)}>
       <Animated.Image source={{ uri: item.image }} style={styles.image} />
       {/*<Text style={styles.text}>Nombre: {item.form.nombreProveedor}</Text>
       <Text style={styles.text}>Código: {item.form.codigo}</Text>*/}

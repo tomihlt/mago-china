@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView, Animat
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library'; // Importa MediaLibrary
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { saveImage } from '@/services/saveImage';
+import { saveImage } from '@/services/dataController';
 
 export default function App() {
 

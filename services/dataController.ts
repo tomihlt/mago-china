@@ -13,6 +13,7 @@ type FormData = {
 type Props = {
   image: string;
   form: FormData;
+  objHash: string;
 };
 
 const getAllKeys = async () => {
@@ -27,7 +28,7 @@ const getAllKeys = async () => {
 export const saveImage = async ({ image, form }: Props) => {
   try {
     const objHash = objectHash({image, form}); // Genera un hash único para el objeto
-    const jsonValue = JSON.stringify({image, form });
+    const jsonValue = JSON.stringify({image, form, objHash }); // el hash sera el id
     await AsyncStorage.setItem(objHash, jsonValue);
   } catch (e) {
     console.error('Error al guardar la imagen en AsyncStorage:', e);
@@ -54,7 +55,7 @@ export const loadImages = async (): Promise<Props[]> => {
         if (value) {
           try {
             const parsed = JSON.parse(value);
-            if (parsed.image && parsed.form) {
+            if (parsed.image && parsed.form && parsed.objHash) {
               return parsed as Props; // Aseguramos el tipo Props
             }
           } catch (error) {
@@ -73,4 +74,14 @@ export const loadImages = async (): Promise<Props[]> => {
   }
 };
 
-  
+export const deleteImage = async ( objHash : string ) => {
+
+  try {
+    //const objHash = objectHash({image, form}); // Genera un hash único para el objeto
+    await AsyncStorage.removeItem(objHash);
+    console.log('Imagen eliminada:', objHash);
+  } catch (e) {
+    console.error('Error al eliminar la imagen en AsyncStorage:', e);
+  }
+
+};
