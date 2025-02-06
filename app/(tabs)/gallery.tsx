@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, Animated, Pressable, Dimensions, Button } from 'react-native';
+import { View, StyleSheet, FlatList, Animated, Pressable, Dimensions, Text } from 'react-native';
 import { loadImages, deleteImage } from '@/services/dataController';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Importar íconos
 
 export default function GalleryScreen() {
   const [images, setImages] = useState<{ image: string; form: any; objHash: string }[]>([]);
@@ -26,7 +27,11 @@ export default function GalleryScreen() {
 
       fetchData(); // Llamada a la función asíncrona
 
-      return () => {};
+      // Reiniciar el estado cuando se pierde el foco
+      return () => {
+        setSelectedImages([]); // Deseleccionar todas las imágenes
+        setIsDeleteMode(false); // Salir del modo de eliminación
+      };
     }, [])
   );
 
@@ -67,6 +72,18 @@ export default function GalleryScreen() {
     }
   };
 
+  // Función para seleccionar o deseleccionar todas las imágenes
+  const toggleSelectAll = () => {
+    if (selectedImages.length === images.length) {
+      // Si todas las imágenes ya están seleccionadas, deseleccionar todas
+      setSelectedImages([]);
+      setIsDeleteMode(false); // Salir del modo de eliminación
+    } else {
+      // Seleccionar todas las imágenes
+      setSelectedImages(images.map(image => image.objHash));
+    }
+  };
+
   // Función para eliminar las imágenes seleccionadas
   const handleDeleteSelectedImages = async () => {
     try {
@@ -100,6 +117,12 @@ export default function GalleryScreen() {
           isDeleteMode && selectedImages.includes(item.objHash) && styles.selectedImage, // Estilo para imágenes seleccionadas
         ]}
       />
+      {/* Ícono de tacho de basura para imágenes seleccionadas */}
+      {isDeleteMode && selectedImages.includes(item.objHash) && (
+        <View style={styles.trashIconContainer}>
+          <Ionicons name="trash" size={24} color="red" />
+        </View>
+      )}
     </Pressable>
   );
 
@@ -115,33 +138,96 @@ export default function GalleryScreen() {
         showsVerticalScrollIndicator={false}
       />
       {isDeleteMode && (
-        <Button
-          title={`Eliminar (${selectedImages.length})`}
-          onPress={handleDeleteSelectedImages}
-          color="red"
-        />
+        <View style={styles.deleteModeContainer}>
+          <Pressable
+            style={styles.selectAllButton}
+            onPress={toggleSelectAll}
+          >
+            <Text style={styles.selectAllText}>
+              {selectedImages.length === images.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={styles.deleteButton}
+            onPress={handleDeleteSelectedImages}
+          >
+            <Ionicons name="trash" size={24} color="white" />
+          </Pressable>
+        </View>
       )}
     </View>
   );
 }
 
+const numColumns = 4;
+const screenWidth = Dimensions.get('window').width;
+const margin = 5; // Margen entre imágenes
+const padding = 10; // Padding del contenedor principal
+const totalMargin = (numColumns - 1) * margin; // Margen total entre las imágenes
+const imageSize = (screenWidth - 2 * padding - totalMargin) / numColumns; // Calcula el tamaño de la imagen
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#25292e', padding: 10 },
+  container: { flex: 1, backgroundColor: '#25292e', padding: padding },
   imageContainer: {
-    marginBottom: 20,
+    width: imageSize, // Usa el tamaño calculado
+    height: imageSize, // Usa el tamaño calculado
+    marginRight: margin, // Margen derecho entre imágenes
+    marginBottom: margin, // Margen inferior entre imágenes
     alignItems: 'center',
-    width: Dimensions.get('window').width / 4,
+    justifyContent: 'center',
   },
   image: {
-    height: 100,
-    width: 100,
-    resizeMode: 'stretch',
-    opacity: 1, // Opacidad normal
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover', // Mantiene la proporción sin deformarse
+    borderRadius: 5, // Bordes redondeados para las imágenes
   },
   selectedImage: {
     opacity: 0.7, // Efecto de nitidez (opacidad reducida)
     borderWidth: 2, // Borde para resaltar
     borderColor: 'rgba(255, 255, 255, 0.8)', // Borde semi-transparente
   },
-  flatList: {},
+  trashIconContainer: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  deleteModeContainer: {
+    position: 'absolute',
+    bottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+  },
+  selectAllButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectAllText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  deleteButton: {
+    backgroundColor: 'red',
+    borderRadius: 30,
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+  },
+  flatList: {
+    flex: 1,
+  },
 });

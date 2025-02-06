@@ -16,6 +16,7 @@ type Props = {
   image: string;
   form: FormData;
   objHash: string;
+  timestamp: string; // Agrega el campo timestamp
 };
 
 const getAllKeys = async () => {
@@ -27,10 +28,11 @@ const getAllKeys = async () => {
   }
 };
 
-export const saveImage = async ({ image, form }: {image: string, form: FormData}) => {
+export const saveImage = async ({ image, form }: { image: string, form: FormData }) => {
   try {
-    const objHash = objectHash({image, form}); // Genera un hash único para el objeto
-    const jsonValue = JSON.stringify({image, form, objHash }); // el hash sera el id
+    const objHash = objectHash({ image, form }); // Genera un hash único para el objeto
+    const timestamp = new Date().toISOString(); // Agrega un timestamp
+    const jsonValue = JSON.stringify({ image, form, objHash, timestamp }); // Incluye el timestamp
     await AsyncStorage.setItem(objHash, jsonValue);
   } catch (e) {
     console.error('Error al guardar la imagen en AsyncStorage:', e);
@@ -57,8 +59,8 @@ export const loadImages = async (): Promise<Props[]> => {
         if (value) {
           try {
             const parsed = JSON.parse(value);
-            if (parsed.image && parsed.form && parsed.objHash) {
-              return parsed as Props; // Aseguramos el tipo Props
+            if (parsed.image && parsed.form && parsed.objHash && parsed.timestamp) {
+              return parsed as Props & { timestamp: string }; // Aseguramos el tipo Props con timestamp
             }
           } catch (error) {
             console.error(`Error al parsear el valor con clave ${key}:`, error);
@@ -66,10 +68,13 @@ export const loadImages = async (): Promise<Props[]> => {
         }
         return null;
       })
-      .filter(Boolean) as Props[]; // Filtra los valores nulos o inválidos
+      .filter(Boolean) as (Props & { timestamp: string })[]; // Filtra los valores nulos o inválidos
+
+    // Ordena las imágenes por timestamp (las más recientes primero)
+    images.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     console.log('Datos cargados:', images);
-    return images; // Devuelve todas las imágenes y formularios
+    return images; // Devuelve todas las imágenes y formularios ordenados
   } catch (e) {
     console.error('Error al cargar los datos de AsyncStorage:', e);
     return [];
