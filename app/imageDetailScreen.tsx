@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Alert, TextInput } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { deleteImage } from '@/services/dataController';
+import { deleteImage, updateImageData } from '@/services/dataController'; // Asegúrate de tener esta función en tu servicio
 
 type FormData = {
   nombreProveedor: string;
@@ -19,6 +19,17 @@ type FormData = {
 export default function ImageDetailScreen() {
   const [isPressedD, setIsPressedD] = useState(false);
   const [isPressedA, setIsPressedA] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Estado para modo edición
+  const [formData, setFormData] = useState<FormData>({
+    nombreProveedor: '',
+    codigo: '',
+    descripcion: '',
+    precio: '',
+    cantidadBulto: '',
+    cubicaje: '',
+    peso: '',
+    obs: '',
+  });
 
   const { image, form, objHash } = useLocalSearchParams();
   const router = useRouter();
@@ -30,15 +41,18 @@ export default function ImageDetailScreen() {
     navigation.setOptions({
       headerShown: false, // Oculta el header
     });
-  }, [navigation]);
 
+    if (formString) {
+      const parsedForm: FormData = JSON.parse(formString);
+      setFormData(parsedForm); // Inicializa el estado con los datos del formulario
+    }
+  }, [navigation, formString]);
 
   if (!image || !formString || !objHash) {
     return <Text>Los datos de la imagen no están disponibles.</Text>;
   }
 
   const imageUri = encodeURI(Array.isArray(image) ? image[0] : image);
-  const parsedForm: FormData = JSON.parse(formString);
 
   const handleDelete = () => {
     Alert.alert(
@@ -66,6 +80,43 @@ export default function ImageDetailScreen() {
     );
   };
 
+  const handleEdit = () => {
+    setIsEditing(true); // Entrar en modo edición
+  };
+
+  const handleSave = () => {
+    Alert.alert(
+      "Guardar Cambios",
+      "¿Estás seguro de que deseas guardar los cambios?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Guardar",
+          onPress: () => {
+            updateImageData(objHash as string, formData, imageUri as string) // Actualiza los datos en el servidor
+              .then(() => {
+                console.log('Datos actualizados exitosamente');
+                setIsEditing(false); // Salir del modo edición
+              })
+              .catch((error: any) => {
+                console.error('Error al actualizar los datos:', error);
+              });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleChange = (field: keyof FormData, value: string) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
@@ -73,57 +124,159 @@ export default function ImageDetailScreen() {
         <Text style={styles.title}>Detalles de la Imagen</Text>
         <View style={styles.detailsContainer}>
           <Text style={styles.label}>Nombre Proveedor:</Text>
-          <Text style={styles.value}>{parsedForm.nombreProveedor}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.nombreProveedor}
+              onChangeText={(text) => handleChange('nombreProveedor', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.nombreProveedor}</Text>
+          )}
 
           <Text style={styles.label}>Código:</Text>
-          <Text style={styles.value}>{parsedForm.codigo}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.codigo}
+              onChangeText={(text) => handleChange('codigo', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.codigo}</Text>
+          )}
 
+          {/* Repite este patrón para los demás campos */}
           <Text style={styles.label}>Descripción:</Text>
-          <Text style={styles.value}>{parsedForm.descripcion}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.descripcion}
+              onChangeText={(text) => handleChange('descripcion', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.descripcion}</Text>
+          )}
 
           <Text style={styles.label}>Precio:</Text>
-          <Text style={styles.value}>{parsedForm.precio}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.precio}
+              onChangeText={(text) => handleChange('precio', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.precio}</Text>
+          )}
 
           <Text style={styles.label}>Cantidad por Bulto:</Text>
-          <Text style={styles.value}>{parsedForm.cantidadBulto}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.cantidadBulto}
+              onChangeText={(text) => handleChange('cantidadBulto', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.cantidadBulto}</Text>
+          )}
 
           <Text style={styles.label}>Cubicaje:</Text>
-          <Text style={styles.value}>{parsedForm.cubicaje}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.cubicaje}
+              onChangeText={(text) => handleChange('cubicaje', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.cubicaje}</Text>
+          )}
 
           <Text style={styles.label}>Peso:</Text>
-          <Text style={styles.value}>{parsedForm.peso}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.peso}
+              onChangeText={(text) => handleChange('peso', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.peso}</Text>
+          )}
 
           <Text style={styles.label}>Observaciones:</Text>
-          <Text style={styles.value}>{parsedForm.obs}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={formData.obs}
+              onChangeText={(text) => handleChange('obs', text)}
+            />
+          ) : (
+            <Text style={styles.value}>{formData.obs}</Text>
+          )}
         </View>
       </View>
 
       {/* Botones */}
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.deleteButton,
-            pressed && styles.buttonIsPressed,
-          ]}
-          onPress={handleDelete}
-          onPressIn={() => setIsPressedD(true)}
-          onPressOut={() => setIsPressedD(false)}
-        >
-          <Ionicons name="trash" size={20} color="rgb(252, 59, 59)" />
-          <Text style={styles.buttonTextDelete}>Eliminar</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.acceptButton,
-            pressed && styles.buttonIsPressed,
-          ]}
-          onPress={() => router.back()}
-          onPressIn={() => setIsPressedA(true)}
-          onPressOut={() => setIsPressedA(false)}
-        >
-          <Ionicons name="checkmark" size={20} color="rgb(81, 196, 71)" />
-          <Text style={styles.buttonTextAccept}>Aceptar</Text>
-        </Pressable>
+        {isEditing ? (
+          <>
+            <Pressable
+              style={({ pressed }) => [
+                styles.saveButton,
+                pressed && styles.buttonIsPressed,
+              ]}
+              onPress={handleSave}
+            >
+              <Ionicons name="save" size={20} color="rgb(81, 196, 71)" />
+              <Text style={styles.buttonTextSave}>Guardar</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.cancelButton,
+                pressed && styles.buttonIsPressed,
+              ]}
+              onPress={() => setIsEditing(false)}
+            >
+              <Ionicons name="close" size={20} color="rgb(252, 59, 59)" />
+              <Text style={styles.buttonTextCancel}>Cancelar</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Pressable
+              style={({ pressed }) => [
+                styles.deleteButton,
+                pressed && styles.buttonIsPressed,
+              ]}
+              onPress={handleDelete}
+              onPressIn={() => setIsPressedD(true)}
+              onPressOut={() => setIsPressedD(false)}
+            >
+              <Ionicons name="trash" size={20} color="rgb(252, 59, 59)" />
+              <Text style={styles.buttonTextDelete}>Eliminar</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.editButton,
+                pressed && styles.buttonIsPressed,
+              ]}
+              onPress={handleEdit}
+            >
+              <Ionicons name="pencil" size={20} color="rgb(255, 192, 75)" />
+              <Text style={styles.buttonTextEdit}>Editar</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.acceptButton,
+                pressed && styles.buttonIsPressed,
+              ]}
+              onPress={() => router.back()}
+              onPressIn={() => setIsPressedA(true)}
+              onPressOut={() => setIsPressedA(false)}
+            >
+              <Ionicons name="checkmark" size={20} color="rgb(81, 196, 71)" />
+              <Text style={styles.buttonTextAccept}>Aceptar</Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -175,6 +328,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 15,
   },
+  input: {
+    fontSize: 16,
+    color: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+    marginBottom: 15,
+  },
   buttonContainer: {
     width: '100%',
     flexDirection: 'row',
@@ -182,6 +342,33 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderColor: 'rgb(252, 59, 59)',
+    borderWidth: 1,
+    borderRadius: 10,
+    backgroundColor: 'rgba(252, 59, 59, 0.1)',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderColor: 'rgb(255, 192, 75)',
+    borderWidth: 1,
+    borderRadius: 10,
+    backgroundColor: 'rgba(81, 196, 71, 0.1)',
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderColor: 'rgb(81, 196, 71)',
+    borderWidth: 1,
+    borderRadius: 10,
+    backgroundColor: 'rgba(81, 196, 71, 0.1)',
+  },
+  cancelButton: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
@@ -200,6 +387,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(81, 196, 71, 0.1)',
   },
   buttonTextDelete: {
+    color: 'rgb(252, 59, 59)',
+    marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  buttonTextEdit: {
+    color: 'rgb(255, 192, 75)',
+    marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  buttonTextSave: {
+    color: 'rgb(81, 196, 71)',
+    marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  buttonTextCancel: {
     color: 'rgb(252, 59, 59)',
     marginLeft: 10,
     fontWeight: 'bold',

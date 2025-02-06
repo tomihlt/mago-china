@@ -87,3 +87,40 @@ export const deleteImage = async ( objHash : string ) => {
   }
 
 };
+
+export const updateImageData = async (objHash: string, newFormData: FormData, imageUri: string): Promise<boolean> => {
+  try {
+    // Obtén el valor actual almacenado con la clave objHash
+    const currentValue = await AsyncStorage.getItem(objHash);
+
+    if (currentValue) {
+      // Parsea el valor actual
+      const parsedValue: Props = JSON.parse(currentValue);
+
+      // Genera un nuevo hash con la URI de la imagen y el nuevo formulario
+      const newObjHash = objectHash({ image: imageUri, form: newFormData });
+
+      // Crea el nuevo objeto con los datos actualizados y el nuevo hash
+      const updatedData = {
+        image: imageUri, // Mantén la misma URI de la imagen o actualízala si es necesario
+        form: newFormData,
+        objHash: newObjHash, // Usa el nuevo hash
+      };
+
+      // Elimina la entrada antigua de AsyncStorage
+      await AsyncStorage.removeItem(objHash);
+
+      // Guarda los datos actualizados con el nuevo hash
+      await AsyncStorage.setItem(newObjHash, JSON.stringify(updatedData));
+
+      console.log('Datos actualizados exitosamente con nuevo hash:', updatedData);
+      return true; // Indica que la actualización fue exitosa
+    } else {
+      console.error('No se encontró la imagen con el hash proporcionado:', objHash);
+      return false; // Indica que no se encontró la imagen
+    }
+  } catch (e) {
+    console.error('Error al actualizar la imagen en AsyncStorage:', e);
+    return false; // Indica que hubo un error
+  }
+};
