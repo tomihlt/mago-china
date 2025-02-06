@@ -13,21 +13,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/micon.jpeg",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tomihlt.magochina"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/micon.jpeg"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/micon.jpeg",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -37,6 +38,16 @@
     "experiments": {
       "typedRoutes": true
     },
-    "permissions": ["CAMERA"]
+    "permissions": [
+      "CAMERA"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "60b0bbf0-6df6-481a-8f2b-b2914c6f2d72"
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, ScrollView, Alert, TextInput } from 'rea
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { deleteImage, updateImageData } from '@/services/dataController'; // Asegúrate de tener esta función en tu servicio
+import { deleteImage, updateImageData } from '@/services/dataController';
 
 type FormData = {
   nombreProveedor: string;
@@ -145,7 +145,6 @@ export default function ImageDetailScreen() {
             <Text style={styles.value}>{formData.codigo}</Text>
           )}
 
-          {/* Repite este patrón para los demás campos */}
           <Text style={styles.label}>Descripción:</Text>
           {isEditing ? (
             <TextInput
@@ -204,12 +203,15 @@ export default function ImageDetailScreen() {
           <Text style={styles.label}>Observaciones:</Text>
           {isEditing ? (
             <TextInput
-              style={styles.input}
+              style={styles.observationsInput} // Estilo para el campo de observaciones en modo edición
               value={formData.obs}
               onChangeText={(text) => handleChange('obs', text)}
+              multiline={true} // Permite múltiples líneas
+              numberOfLines={4} // Número inicial de líneas visibles
+              textAlignVertical="top" // Alinea el texto en la parte superior
             />
           ) : (
-            <Text style={styles.value}>{formData.obs}</Text>
+            <Text style={styles.observationsText}>{formData.obs}</Text> // Estilo para el campo de observaciones en modo visualización
           )}
         </View>
       </View>
@@ -334,6 +336,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#fff',
     marginBottom: 15,
+  },
+  observationsInput: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    height: 100, // Altura fija para el campo de observaciones
+    textAlignVertical: 'top', // Alinea el texto en la parte superior
+  },
+  observationsText: {
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#333',
+    borderRadius: 10,
+    textAlignVertical: 'top', // Alinea el texto en la parte superior
   },
   buttonContainer: {
     width: '100%',

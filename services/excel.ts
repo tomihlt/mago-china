@@ -42,12 +42,27 @@ export const exportToExcel = async (fileName: string) => {
       'Cantidad por Bulto': item.form.cantidadBulto,
       'Cubicaje': item.form.cubicaje,
       'Peso': item.form.peso,
-      'Observaciones': item.form.obs,
+      'Observaciones': item.form.obs.replace(/\n/g, '\r\n'), // Reemplazar saltos de línea con \r\n para Excel
       'Fecha y hora de la imagen': item.timestamp,
     }));
 
     // Crear una hoja de cálculo
     const ws = XLSX.utils.json_to_sheet(data);
+
+    // Aplicar formato de ajuste de texto a todas las celdas de la columna "Observaciones"
+    const range = XLSX.utils.decode_range(ws['!ref']!);
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: 7 }); // Columna 7 es "Observaciones"
+      if (ws[cellAddress]) {
+        ws[cellAddress].t = 's'; // Tipo de celda: texto
+        ws[cellAddress].s = {
+          alignment: {
+            wrapText: true, // Habilitar ajuste de texto
+            vertical: 'top', // Alinear el texto en la parte superior
+          },
+        };
+      }
+    }
 
     // Crear un libro de trabajo y añadir la hoja de cálculo
     const wb = XLSX.utils.book_new();

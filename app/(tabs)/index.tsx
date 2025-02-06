@@ -224,12 +224,17 @@ export default function App() {
           onChangeText={(text) => setFormData({ ...formData, peso: text })}
         />
 
-        <Text style={styles.label}>Observaciones</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.obs}
-          onChangeText={(text) => setFormData({ ...formData, obs: text })}
-        />
+      <Text style={styles.label}>Observaciones</Text>
+      <TextInput
+        style={styles.observationsInput} // Nuevo estilo para el campo de observaciones
+        value={formData.obs}
+        onChangeText={(text) => setFormData({ ...formData, obs: text })}
+        multiline={true} // Permite múltiples líneas
+        numberOfLines={4} // Número inicial de líneas visibles
+        textAlignVertical="top" // Alinea el texto en la parte superior
+        placeholder="Escribe tus observaciones aquí..."
+        placeholderTextColor="#888" // Color del texto de placeholder
+      />
         {/* Otros campos similares */}
 
         {/* Botones */}
@@ -341,5 +346,15 @@ const styles = StyleSheet.create({
   },
   buttonIsPressed: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  observationsInput: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    height: 100, // Altura fija para el campo de observaciones
+    textAlignVertical: 'top', // Alinea el texto en la parte superior
   },
 });
