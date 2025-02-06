@@ -17,7 +17,7 @@ export default function App() {
   const [image, setImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombreProveedor: '',
-    codigo: '',
+    codigo: 'EM-',
     descripcion: '',
     precio: '',
     cantidadBulto: '',
@@ -25,6 +25,18 @@ export default function App() {
     peso: '',
     obs: '',
   });
+
+  const handleCodeChange = (text: string) => {
+    // Asegura que el prefijo EM- siempre esté presente
+    if (!text.startsWith('EM-')) {
+      text = 'EM-' + text.replace(/[^0-9]/g, ''); // Añade el prefijo si no está presente y elimina caracteres no numéricos
+    } else {
+      // Si el prefijo está presente, solo permite números después de EM-
+      text = 'EM-' + text.substring(3).replace(/[^0-9]/g, '');
+    }
+
+    setFormData({ ...formData, codigo: text });
+  };
 
   const pickImageFromGallery = async () => {
     try {
@@ -135,7 +147,7 @@ export default function App() {
     setImage(null);
     setFormData({
       nombreProveedor: '',
-      codigo: '',
+      codigo: 'EM-',
       descripcion: '',
       precio: '',
       cantidadBulto: '',
@@ -171,7 +183,8 @@ export default function App() {
           style={styles.input}
           keyboardType="numeric"
           value={formData.codigo}
-          onChangeText={(text) => setFormData({ ...formData, codigo: text })}
+          // onChangeText={(text) => setFormData({ ...formData, codigo: text })}
+          onChangeText={handleCodeChange}
         />
         <Text style={styles.label}>Descripción</Text>
         <TextInput
