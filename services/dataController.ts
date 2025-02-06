@@ -8,6 +8,8 @@ type FormData = {
   precio: string;
   cantidadBulto: string;
   cubicaje: string;
+  peso: string;
+  obs: string;
 };
 
 type Props = {
@@ -25,7 +27,7 @@ const getAllKeys = async () => {
   }
 };
 
-export const saveImage = async ({ image, form }: Props) => {
+export const saveImage = async ({ image, form }: {image: string, form: FormData}) => {
   try {
     const objHash = objectHash({image, form}); // Genera un hash único para el objeto
     const jsonValue = JSON.stringify({image, form, objHash }); // el hash sera el id

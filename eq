@@ -1,0 +1,16 @@
+[33mc55dbb7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m se incorporó la función de eliminar imagen
+[33m48702fe[m[33m ([m[1;31morigin/master[m[33m)[m se agrego la flat list con las imagenes
+[33mc973f48[m ahora la imagen se puede seleccionar desde la galeria o sacar
+[33m2ac3ddf[m guarda la imagen cuando se aprieta acceptar
+[33mca925ca[m efectos
+[33m3e94f33[m uni todo en index
+[33m49c169d[m se resetea la imagen tambien
+[33m379c8dc[m 0.1
+[33md8a89ac[m agregué campos del form2
+[33ma9634c0[m cambio interfaz botones
+[33m4fa98d2[m interfaz index casi completada
+[33mc45a5cd[m fix camera bug
+[33m9687466[m tsx change
+[33m7a3191c[m funciona la camara
+[33m7c6fada[m init
+[33m9157439[m estructura basica

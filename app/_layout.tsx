@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { Appearance } from 'react-native';
+import ImageDetailScreen from './imageDetailScreen';
 
 export default function RootLayout() {
 

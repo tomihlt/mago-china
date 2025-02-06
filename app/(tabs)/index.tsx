@@ -22,6 +22,8 @@ export default function App() {
     precio: '',
     cantidadBulto: '',
     cubicaje: '',
+    peso: '',
+    obs: '',
   });
 
   const pickImageFromGallery = async () => {
@@ -35,8 +37,8 @@ export default function App() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
+        //aspect: [1, 1],
+        quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -60,8 +62,8 @@ export default function App() {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
+        //aspect: [1, 1],
+        quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -138,6 +140,8 @@ export default function App() {
       precio: '',
       cantidadBulto: '',
       cubicaje: '',
+      peso: '',
+      obs: '',
     });
   };
 
@@ -198,6 +202,20 @@ export default function App() {
           keyboardType="numeric"
           value={formData.cubicaje}
           onChangeText={(text) => setFormData({ ...formData, cubicaje: text })}
+        />
+
+        <Text style={styles.label}>Peso</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.peso}
+          onChangeText={(text) => setFormData({ ...formData, peso: text })}
+        />
+
+        <Text style={styles.label}>Observaciones</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.obs}
+          onChangeText={(text) => setFormData({ ...formData, obs: text })}
         />
         {/* Otros campos similares */}
 

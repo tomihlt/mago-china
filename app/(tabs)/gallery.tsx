@@ -4,9 +4,12 @@ import { loadImages, deleteImage } from '@/services/dataController'; // Asegúra
 import { useFocusEffect } from '@react-navigation/native'; // Importa el hook
 import objectHash from 'object-hash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 export default function GalleryScreen() {
   const [images, setImages] = useState<{ image: string; form: any; objHash: string }[]>([]);
+  const router = useRouter();
 
   // Cargar las imágenes cada vez que la pantalla gana foco
   useFocusEffect(
@@ -45,21 +48,29 @@ export default function GalleryScreen() {
   }, []); // Solo ejecutarse una vez al montar el componente*/}
 
   // Función para eliminar una imagen
-  const handleDeleteImage = async (objHash: string) => {
-    try {
-      // Eliminar la imagen del almacenamiento
-      await deleteImage(objHash);
-      // Actualizar el estado para reflejar la eliminación
-      const updatedImages = images.filter(image => image.objHash !== objHash);
-      setImages(updatedImages); // Re-renderizar el componente con las imágenes restantes
-    } catch (error) {
-      console.error('Error al eliminar la imagen:', error);
-    }
+  const handleClickImage = async (item: {image: string, form: FormData, objHash: string}) => {
+    // try {
+    //   // Eliminar la imagen del almacenamiento
+    //   await deleteImage(objHash);
+    //   // Actualizar el estado para reflejar la eliminación
+    //   const updatedImages = images.filter(image => image.objHash !== objHash);
+    //   setImages(updatedImages); // Re-renderizar el componente con las imágenes restantes
+    // } catch (error) {
+    //   console.error('Error al eliminar la imagen:', error);
+    // }
+    router.push({
+      pathname: '/imageDetailScreen', 
+      params: { 
+        image: item.image, 
+        form: JSON.stringify(item.form),  // Convertimos el objeto a JSON
+        objHash: item.objHash
+      }
+    });
   };
 
   // Función para renderizar cada imagen en la lista
   const renderItem = ({ item }: { item: { image: string; form: any; objHash: string } }) => (
-    <Pressable style={styles.imageContainer} onPress={() => handleDeleteImage(item.objHash)}>
+    <Pressable style={styles.imageContainer} onPress={() => handleClickImage(item)}>
       <Animated.Image source={{ uri: item.image }} style={styles.image} />
       {/*<Text style={styles.text}>Nombre: {item.form.nombreProveedor}</Text>
       <Text style={styles.text}>Código: {item.form.codigo}</Text>*/}
@@ -85,7 +96,7 @@ export default function GalleryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#25292e', padding: 10 },
   imageContainer: { marginBottom: 20, alignItems: 'center', width: Dimensions.get('window').width/4 },
-  image: { height: 100, width: 100, resizeMode: 'contain' },
+  image: { height: 100, width: 100, resizeMode: 'stretch' },
   text: { color: '#fff', textAlign: 'center' },
   flatList: { },
 });
