@@ -1,9 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView, Animated, Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library'; // Importa MediaLibrary
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { saveImage } from '@/services/dataController';
+
+const requestAllPermissions = async () => {
+  try {
+    // Verifica si los permisos ya fueron concedidos antes de pedirlos nuevamente
+    const cameraPermission = await ImagePicker.getCameraPermissionsAsync();
+    const galleryPermission = await ImagePicker.getMediaLibraryPermissionsAsync();
+    const writePermission = await MediaLibrary.getPermissionsAsync();
+
+    if (
+      cameraPermission.status === 'granted' &&
+      galleryPermission.status === 'granted' &&
+      writePermission.status === 'granted'
+    ) {
+      return true; // Si ya tiene permisos, no los vuelve a solicitar
+    }
+
+    // Solicitar permisos solo si no están concedidos
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: galleryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status: writeStatus } = await MediaLibrary.requestPermissionsAsync();
+
+    if (cameraStatus !== 'granted' || galleryStatus !== 'granted' || writeStatus !== 'granted') {
+      Alert.alert('Permiso denegado', 'Se necesitan permisos para continuar.');
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error solicitando permisos:', error);
+    return false;
+  }
+};
+
 
 export default function App() {
 
@@ -39,52 +72,46 @@ export default function App() {
   };
 
   const pickImageFromGallery = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
+    const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+    if (permission.status !== 'granted') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
         Alert.alert('Permiso requerido', 'Se necesita acceso a la galería para seleccionar una imagen.');
         return;
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        //aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setTakenFromGallery(true);
-        setImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error al abrir la galería:', error);
-      Alert.alert('Error', 'No se pudo abrir la galería.');
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setTakenFromGallery(true);
+      setImage(result.assets[0].uri);
     }
   };
 
   const takePhotoWithCamera = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permissionResult.granted) {
+    const permission = await ImagePicker.getCameraPermissionsAsync();
+    if (permission.status !== 'granted') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
         Alert.alert('Permiso requerido', 'Se necesita acceso a la cámara para tomar una foto.');
         return;
       }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        //aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setTakenFromGallery(false);
-        setImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error al abrir la cámara:', error);
-      Alert.alert('Error', 'No se pudo abrir la cámara.');
+    }
+  
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setTakenFromGallery(false);
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -109,7 +136,7 @@ export default function App() {
       return;
     }
 
-    try {
+    /* try {
       // Solicitar permisos para acceder a la galería
       const { granted } = await MediaLibrary.requestPermissionsAsync();
       if (!granted) {
@@ -129,7 +156,16 @@ export default function App() {
     } catch (error) {
       console.error('Error al guardar la imagen:', error);
       Alert.alert('Error', 'No se pudo guardar la imagen.');
+    } */
+   // Guardar la imagen en la galería
+    if(takenFromGallery) {
+      // resetForm();
+      return;
     }
+    const asset = await MediaLibrary.createAssetAsync(image);
+    // await MediaLibrary.createAlbumAsync('MyAppImages', asset, true); // cambiar "MyAppImages" por el nombre del proyecto (cuando se implemente, las imagenes de la galaria no estan en ese album)
+    // Alert.alert('Éxito', 'La imagen se guardó en la galería.');
+    // resetForm();
 
   };
 
