@@ -105,7 +105,7 @@ export default function App() {
   // Función para guardar la imagen en la galería
   const saveImageToGallery = async () => {
     if (!image) {
-      Alert.alert('Error', 'No hay una imagen para guardar.');
+      //Alert.alert('Error', 'No hay una imagen para guardar.');
       return;
     }
 
@@ -119,13 +119,13 @@ export default function App() {
 
       // Guardar la imagen en la galería
       if(takenFromGallery) {
-        resetForm();
+        // resetForm();
         return;
       }
       const asset = await MediaLibrary.createAssetAsync(image);
       await MediaLibrary.createAlbumAsync('MyAppImages', asset, false); // cambiar "MyAppImages" por el nombre del proyecto (cuando se implemente, las imagenes de la galaria no estan en ese album)
       Alert.alert('Éxito', 'La imagen se guardó en la galería.');
-      resetForm();
+      // resetForm();
     } catch (error) {
       console.error('Error al guardar la imagen:', error);
       Alert.alert('Error', 'No se pudo guardar la imagen.');
@@ -134,28 +134,57 @@ export default function App() {
   };
 
   const handleAccept = () => {
-    console.log('Datos enviados:');
-    console.log('Imagen:', image);
-    console.log('Formulario:', formData);
+    const codigoActual = formData.codigo.replace('EM-', '').trim(); // Extrae el número y elimina espacios
+  
+    if (!/^\d+$/.test(codigoActual)) { // Verifica si hay al menos un número
+      Alert.alert('Error', 'El código debe contener al menos un número después de "EM-".');
+      return;
+    }
 
+    if (!image) {
+      Alert.alert('Error', 'No hay una imagen para guardar.');
+      return;
+    }
+  
+    console.log('Datos enviados:', formData);
+  
     saveImageToGallery();
     saveImage({ image: image || '', form: formData });
-
+  
+    // Incrementar código en 1 y mantener el nombre del proveedor
+    setFormData(prevData => {
+      const nuevoCodigo = isNaN(parseInt(codigoActual)) ? 1 : parseInt(codigoActual) + 1; // Incrementa en 1
+  
+      return {
+        ...prevData, // Mantiene los datos actuales
+        codigo: `EM-${nuevoCodigo}`, // Incrementa el código
+        descripcion: '',
+        precio: '',
+        cantidadBulto: '',
+        cubicaje: '',
+        peso: '',
+        obs: '',
+      };
+    });
+  
+    setImage(null); // Resetea la imagen
   };
+  
+  
 
   const resetForm = () => {
-    setImage(null);
-    setFormData({
-      nombreProveedor: '',
-      codigo: 'EM-',
+    setFormData((prevData) => ({
+      nombreProveedor: '', // Mantiene el proveedor
+      codigo: 'EM-', // Mantiene el código actual
       descripcion: '',
       precio: '',
       cantidadBulto: '',
       cubicaje: '',
       peso: '',
       obs: '',
-    });
+    }));
   };
+  
 
   return (
     <View style={styles.container}>

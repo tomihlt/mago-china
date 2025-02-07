@@ -102,14 +102,18 @@ export const updateImageData = async (objHash: string, newFormData: FormData, im
       // Parsea el valor actual
       const parsedValue: Props = JSON.parse(currentValue);
 
+      // Mantén el timestamp original
+      const originalTimestamp = parsedValue.timestamp;
+
       // Genera un nuevo hash con la URI de la imagen y el nuevo formulario
       const newObjHash = objectHash({ image: imageUri, form: newFormData });
 
-      // Crea el nuevo objeto con los datos actualizados y el nuevo hash
+      // Crea el nuevo objeto con los datos actualizados y el timestamp original
       const updatedData = {
-        image: imageUri, // Mantén la misma URI de la imagen o actualízala si es necesario
+        image: imageUri, 
         form: newFormData,
-        objHash: newObjHash, // Usa el nuevo hash
+        objHash: newObjHash,
+        timestamp: originalTimestamp, // Mantiene el timestamp original
       };
 
       // Elimina la entrada antigua de AsyncStorage
@@ -118,7 +122,7 @@ export const updateImageData = async (objHash: string, newFormData: FormData, im
       // Guarda los datos actualizados con el nuevo hash
       await AsyncStorage.setItem(newObjHash, JSON.stringify(updatedData));
 
-      console.log('Datos actualizados exitosamente con nuevo hash:', updatedData);
+      console.log('Datos actualizados exitosamente con el timestamp original:', updatedData);
       return true; // Indica que la actualización fue exitosa
     } else {
       console.error('No se encontró la imagen con el hash proporcionado:', objHash);
