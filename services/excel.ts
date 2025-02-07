@@ -34,7 +34,7 @@ export const exportToExcel = async (fileName: string) => {
     }
 
     // Crear un array de objetos con los datos que queremos exportar
-    const data = images.map((item) => ({
+    let data = images.map((item) => ({
       'Nombre Proveedor': item.form.nombreProveedor,
       'Código': item.form.codigo,
       'Descripción': item.form.descripcion,
@@ -45,6 +45,25 @@ export const exportToExcel = async (fileName: string) => {
       'Observaciones': item.form.obs.replace(/\n/g, '\r\n'), // Reemplazar saltos de línea con \r\n para Excel
       'Fecha y hora de la imagen': item.timestamp,
     }));
+
+    // Agrupar por proveedor y ordenar los códigos EM- en orden descendente
+    data = data.sort((a, b) => {
+      // Primero, agrupar por proveedor
+      if (a['Nombre Proveedor'] < b['Nombre Proveedor']) return -1;
+      if (a['Nombre Proveedor'] > b['Nombre Proveedor']) return 1;
+
+      // Si son del mismo proveedor, ordenar por código EM- en orden descendente
+      const codeA = a['Código'];
+      const codeB = b['Código'];
+
+      if (codeA.startsWith('EM-') && codeB.startsWith('EM-')) {
+        const numA = parseInt(codeA.split('-')[1], 10);
+        const numB = parseInt(codeB.split('-')[1], 10);
+        return numA - numB; // Orden ascendente (menor número primero)
+      }
+
+      return 0;
+    });
 
     // Crear una hoja de cálculo
     const ws = XLSX.utils.json_to_sheet(data);
