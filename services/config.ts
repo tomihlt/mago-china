@@ -1,20 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const setId = async (id: number) => {
+export const setCode = async (code: number) => {
+
     try {
-        await AsyncStorage.setItem('last-id', id.toString());
+        await AsyncStorage.setItem('last-code', code.toString());
     } catch (e) {
         // saving error
     }
+
 };
 
-const getId = async () => {
+export const getCode = async () => {
+
     try {
-        const value = await AsyncStorage.getItem('last-id');
-        if (value !== null) {
-            return value;
-        }
+        const code = await AsyncStorage.getItem('last-code');
+        return code === null ? 0 : parseInt(code);
     } catch (e) {
         // error reading value
+    }
+
+}
+
+export const updateCode = async (code: number) => {
+    try {
+        await AsyncStorage.setItem('last-code', code.toString());
+    } catch (e) {
+        // saving error
     }
 }

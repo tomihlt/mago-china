@@ -26,10 +26,10 @@ export default function OptionsScreen() {
   return (
     <View style={styles.container}>
       {/* Botón para nuevo proyecto */}
-      {/* <Pressable style={styles.newProjectContainer}>
+      <Pressable style={styles.newProjectContainer}>
         <Ionicons name="caret-forward" size={24} color="white" />
         <Text style={styles.text}> Nuevo proyecto </Text>
-      </Pressable> */}
+      </Pressable> 
 
       {/* Botón para exportar a Excel */}
       <Pressable style={styles.exportButton} onPress={() => setModalVisible(true)}>
