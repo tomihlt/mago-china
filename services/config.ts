@@ -10,13 +10,14 @@ export const setCode = async (code: number) => {
 
 };
 
-export const getCode = async () => {
+export const getCode = async (): Promise<number> => {
 
     try {
         const code = await AsyncStorage.getItem('last-code');
         return code === null ? 0 : parseInt(code);
     } catch (e) {
         // error reading value
+        return 0;
     }
 
 }

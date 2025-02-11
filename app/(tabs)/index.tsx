@@ -5,7 +5,7 @@ import * as MediaLibrary from 'expo-media-library';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { saveImage } from '@/services/dataController';
 import { useFocusEffect } from 'expo-router';
-import { getCode } from '@/services/config';
+import { getCode, setCode } from '@/services/config';
 
 const requestAllPermissions = async () => {
   try {
@@ -53,6 +53,16 @@ export default function App() {
     peso: '',
     obs: '',
   });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchSavedCode = async () => {
+        const code = await getCode();
+        setFormData(prevData => ({ ...prevData, codigo: `EM-${code}` }));
+      };
+      fetchSavedCode();
+    }, [])
+  );
 
   const handleCodeChange = (text: string) => {
     if (!text.startsWith('EM-')) {
@@ -151,6 +161,7 @@ export default function App() {
 
     setFormData(prevData => {
       const nuevoCodigo = isNaN(parseInt(codigoActual)) ? 1 : parseInt(codigoActual) + 1;
+      setCode(nuevoCodigo);
 
       return {
         ...prevData,
