@@ -36,7 +36,7 @@ export const exportToExcel = async (fileName: string) => {
     // Crear un array de objetos con los datos que queremos exportar
     let data = images.map((item) => ({
       'Nombre Proveedor': item.form.nombreProveedor,
-      'Código': item.form.codigo,
+      'Código': item.form.codigo.replace('EM-', 'EM'), // Eliminar el guion en los códigos EM-
       'Descripción': item.form.descripcion,
       'Precio': item.form.precio,
       'Cantidad por Bulto': item.form.cantidadBulto,
@@ -56,9 +56,9 @@ export const exportToExcel = async (fileName: string) => {
       const codeA = a['Código'];
       const codeB = b['Código'];
 
-      if (codeA.startsWith('EM-') && codeB.startsWith('EM-')) {
-        const numA = parseInt(codeA.split('-')[1], 10);
-        const numB = parseInt(codeB.split('-')[1], 10);
+      if (codeA.startsWith('EM') && codeB.startsWith('EM')) {
+        const numA = parseInt(codeA.split('EM')[1], 10);
+        const numB = parseInt(codeB.split('EM')[1], 10);
         return numA - numB; // Orden ascendente (menor número primero)
       }
 
