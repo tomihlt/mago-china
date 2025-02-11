@@ -53,6 +53,7 @@ export default function App() {
     peso: '',
     obs: '',
   });
+  const [textInputHeight, setTextInputHeight] = useState(100);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -195,11 +196,13 @@ export default function App() {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Ajusta este valor según sea necesario
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer} // Asegúrate de que el contenido tenga suficiente espacio
         keyboardShouldPersistTaps="handled" // Permite manejar los taps en el teclado
+        automaticallyAdjustContentInsets={true}
+        contentInset={{ bottom: 100 }}
       >
         {/* Image Viewer */}
         <Pressable onPress={handleImagePick} onPressIn={() => setImagePressed(true)} onPressOut={() => setImagePressed(false)}>
@@ -266,16 +269,22 @@ export default function App() {
           />
 
           <Text style={styles.label}>Observaciones</Text>
-          <TextInput
-            style={styles.observationsInput}
-            value={formData.obs}
-            onChangeText={(text) => setFormData({ ...formData, obs: text })}
-            multiline={true}
-            numberOfLines={4}
-            textAlignVertical="top"
-            placeholder="Escribe tus observaciones aquí..."
-            placeholderTextColor="#888"
-          />
+          <ScrollView
+            style={[styles.observationsInput, { height: textInputHeight }]}
+            contentContainerStyle={{ paddingVertical: 10 }}
+            onContentSizeChange={(contentWidth, contentHeight) => {
+              setTextInputHeight(Math.max(100, contentHeight));
+            }}
+          >
+            <TextInput
+              style={{ height: '100%', color: '#fff' }}
+              value={formData.obs}
+              onChangeText={(text) => setFormData({ ...formData, obs: text })}
+              multiline
+              placeholder="Escribe tus observaciones aquí..."
+              placeholderTextColor="#888"
+            />
+          </ScrollView>
 
           {/* Botones */}
           <View style={styles.buttonContainer}>
@@ -394,7 +403,7 @@ const styles = StyleSheet.create({
   observationsInput: {
     backgroundColor: '#333',
     color: '#fff',
-    padding: 10,
+    paddingLeft: 10,
     borderRadius: 10,
     marginBottom: 15,
     fontSize: 16,
