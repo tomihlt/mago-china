@@ -26,7 +26,7 @@ This app allows users to upload product data and automatically export it to Exce
 
 # You can also see the data that you loaded before
 
-Data stored locally
+Data stored locally using async storage
 
 <table>
   <tr>
