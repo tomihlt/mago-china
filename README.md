@@ -26,11 +26,30 @@ This app allows users to upload product data and automatically export it to Exce
 
 # You can also see the data that you loaded before
 
-<img src="img/gallery.jpg" alt="Gallery" style="height: 500px; margin-bottom: 20px;" />  
-<img src="img/info.jpg" alt="Info" style="height: 500px; margin-bottom: 20px;" />
+Data stored locally
+
+<table>
+  <tr>
+    <td style="text-align:center;">
+      <img src="img/info.jpg" alt="Info" style="height: 500px;" /><br/>
+      Detailed info
+    </td>
+    <td style="text-align:center;">
+      <img src="img/gallery.jpg" alt="Gallery" style="height: 500px;" /><br/>
+      Gallery view
+    </td>
+  </tr>
+</table>
 
 ---
 
-And edit/delete
+# And edit/delete
 
-<img src="img/edit.jpg" alt="Edit" style="height: 500px;" />
+<table>
+  <tr>
+    <td style="text-align:center;">
+      <img src="img/edit.jpg" alt="Edit" style="height: 500px;" /><br/>
+      Edit/Delete
+    </td>
+  </tr>
+</table>
