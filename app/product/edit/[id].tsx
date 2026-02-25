@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -55,6 +55,26 @@ export default function EditProductScreen() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Keyboard-aware scroll (Tarea 3)
+  const scrollRef = useRef<ScrollView>(null);
+  const fieldYRef = useRef<Record<string, number>>({});
+
+  const handleInputFocus = useCallback((fieldKey: string) => {
+    const y = fieldYRef.current[fieldKey];
+    if (y != null) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: y - spacing.lg, animated: true });
+      }, 100);
+    }
+  }, []);
+
+  const captureFieldY = useCallback(
+    (fieldKey: string) => (event: any) => {
+      fieldYRef.current[fieldKey] = event.nativeEvent.layout.y;
+    },
+    []
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -156,9 +176,11 @@ export default function EditProductScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 64}
     >
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -197,29 +219,35 @@ export default function EditProductScreen() {
             </Text>
           </View>
 
-          <Input
-            label="Nombre del Proveedor"
-            required
-            value={form.supplier_name}
-            onChangeText={(t) => updateField('supplier_name', t)}
-            placeholder="Ej: Proveedor S.A."
-            maxLength={200}
-            error={errors.supplier_name}
-          />
+          <View onLayout={captureFieldY('supplier_name')}>
+            <Input
+              label="Nombre del Proveedor"
+              required
+              value={form.supplier_name}
+              onChangeText={(t) => updateField('supplier_name', t)}
+              placeholder="Ej: Proveedor S.A."
+              maxLength={200}
+              error={errors.supplier_name}
+              onFocus={() => handleInputFocus('supplier_name')}
+            />
+          </View>
 
-          <Input
-            label="Descripción"
-            value={form.description}
-            onChangeText={(t) => updateField('description', t)}
-            placeholder="Descripción del producto..."
-            multiline
-            numberOfLines={3}
-            maxLength={1000}
-            style={styles.multiline}
-          />
+          <View onLayout={captureFieldY('description')}>
+            <Input
+              label="Descripción"
+              value={form.description}
+              onChangeText={(t) => updateField('description', t)}
+              placeholder="Descripción del producto..."
+              multiline
+              numberOfLines={3}
+              maxLength={1000}
+              style={styles.multiline}
+              onFocus={() => handleInputFocus('description')}
+            />
+          </View>
 
           <View style={styles.row}>
-            <View style={styles.half}>
+            <View style={styles.half} onLayout={captureFieldY('price')}>
               <Input
                 label="Precio"
                 value={form.price}
@@ -227,9 +255,10 @@ export default function EditProductScreen() {
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 error={errors.price}
+                onFocus={() => handleInputFocus('price')}
               />
             </View>
-            <View style={styles.half}>
+            <View style={styles.half} onLayout={captureFieldY('units_per_package')}>
               <Input
                 label="Unidades/Bulto"
                 value={form.units_per_package}
@@ -237,12 +266,13 @@ export default function EditProductScreen() {
                 placeholder="1"
                 keyboardType="number-pad"
                 error={errors.units_per_package}
+                onFocus={() => handleInputFocus('units_per_package')}
               />
             </View>
           </View>
 
           <View style={styles.row}>
-            <View style={styles.half}>
+            <View style={styles.half} onLayout={captureFieldY('volume')}>
               <Input
                 label="Cubicaje (m³)"
                 value={form.volume}
@@ -250,9 +280,10 @@ export default function EditProductScreen() {
                 placeholder="0.000"
                 keyboardType="decimal-pad"
                 error={errors.volume}
+                onFocus={() => handleInputFocus('volume')}
               />
             </View>
-            <View style={styles.half}>
+            <View style={styles.half} onLayout={captureFieldY('weight')}>
               <Input
                 label="Peso (kg)"
                 value={form.weight}
@@ -260,20 +291,24 @@ export default function EditProductScreen() {
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 error={errors.weight}
+                onFocus={() => handleInputFocus('weight')}
               />
             </View>
           </View>
 
-          <Input
-            label="Observaciones"
-            value={form.observations}
-            onChangeText={(t) => updateField('observations', t)}
-            placeholder="Notas adicionales..."
-            multiline
-            numberOfLines={4}
-            maxLength={2000}
-            style={styles.multiline}
-          />
+          <View onLayout={captureFieldY('observations')}>
+            <Input
+              label="Observaciones"
+              value={form.observations}
+              onChangeText={(t) => updateField('observations', t)}
+              placeholder="Notas adicionales..."
+              multiline
+              numberOfLines={4}
+              maxLength={2000}
+              style={styles.multiline}
+              onFocus={() => handleInputFocus('observations')}
+            />
+          </View>
 
           <View style={styles.actions}>
             <Button

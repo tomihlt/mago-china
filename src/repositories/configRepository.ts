@@ -45,8 +45,8 @@ export async function getSequence(): Promise<number> {
 }
 
 export async function setSequence(seq: number): Promise<void> {
-  if (seq < 1 || seq > 9999) {
-    throw new Error('El número secuencial debe estar entre 1 y 9999');
+  if (seq < 1) {
+    throw new Error('El número secuencial debe ser mayor a 0');
   }
   await setConfigValue(SEQUENCE_KEY, String(seq));
 }
@@ -64,7 +64,9 @@ export async function consumeNextProductCode(): Promise<string> {
         const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM-';
         const seqStr = (await getConfigValue(SEQUENCE_KEY)) ?? '1';
         const seq = parseInt(seqStr, 10);
-        const code = `${prefix}${String(seq).padStart(4, '0')}`;
+        // Pad to at least 4 digits; if seq already has more digits, keep them all
+        const padWidth = Math.max(4, String(seq).length);
+        const code = `${prefix}${String(seq).padStart(padWidth, '0')}`;
         await setConfigValue(SEQUENCE_KEY, String(seq + 1));
         resolve(code);
       } catch (err) {
@@ -78,7 +80,8 @@ export async function previewNextProductCode(): Promise<string> {
   const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM-';
   const seqStr = (await getConfigValue(SEQUENCE_KEY)) ?? '1';
   const seq = parseInt(seqStr, 10);
-  return `${prefix}${String(seq).padStart(4, '0')}`;
+  const padWidth = Math.max(4, String(seq).length);
+  return `${prefix}${String(seq).padStart(padWidth, '0')}`;
 }
 
 export async function getThemeMode(): Promise<ThemeMode> {

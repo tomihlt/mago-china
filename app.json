@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Inventario El Mago",
+    "name": "El Mago China",
     "slug": "imm",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "scheme": "imm",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/mago-icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/mago-icon-splash.svg",
       "resizeMode": "contain",
       "backgroundColor": "#1A3A8F"
     },
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/mago-icon.png",
         "backgroundColor": "#1A3A8F"
       },
       "edgeToEdgeEnabled": true,
@@ -36,7 +36,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/mago-icon.png"
     },
     "plugins": [
       "expo-sqlite",
@@ -47,6 +47,14 @@
         {
           "photosPermission": "Necesitamos acceso a tus fotos para registrar productos.",
           "cameraPermission": "Necesitamos acceso a la cámara para fotografiar productos."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Necesitamos acceso a tus fotos para guardar imágenes del inventario.",
+          "savePhotosPermission": "Necesitamos permiso para guardar fotos del inventario en tu galería.",
+          "isAccessMediaLocationEnabled": false
         }
       ]
     ]

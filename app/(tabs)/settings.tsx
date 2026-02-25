@@ -91,8 +91,8 @@ export default function SettingsScreen() {
       valid = false;
     }
     const seq = parseInt(sequence);
-    if (isNaN(seq) || seq < 1 || seq > 9999) {
-      setSequenceError('Debe ser un número entre 1 y 9999');
+    if (isNaN(seq) || seq < 1) {
+      setSequenceError('Debe ser un número mayor a 0');
       valid = false;
     }
     if (!valid) return;
@@ -215,7 +215,7 @@ export default function SettingsScreen() {
             keyboardType="number-pad"
             placeholder="1"
             error={sequenceError}
-            hint="Valor entre 1 y 9999"
+            hint="Número mayor a 0 (soporta más de 4 dígitos)"
           />
           <View style={[styles.previewBox, { backgroundColor: colors.surfaceVariant, borderColor: colors.border }]}>
             <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>
@@ -253,7 +253,7 @@ export default function SettingsScreen() {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={[styles.appInfoText, { color: colors.textDisabled }]}>
-            Inventario El Mago v1.0.0
+            Inventario El Mago v2.0.0
           </Text>
         </View>
       </ScrollView>

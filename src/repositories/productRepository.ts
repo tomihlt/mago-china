@@ -14,16 +14,59 @@ export async function getProductById(id: number): Promise<Product | null> {
   return db.getFirstAsync<Product>(`SELECT * FROM PRODUCTS WHERE id = ?`, [id]);
 }
 
+/**
+ * Checks if a product code already exists in the database.
+ * Used to validate manually entered codes before saving.
+ */
+export async function getProductByCode(
+  code: string
+): Promise<Product | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Product>(
+    `SELECT * FROM PRODUCTS WHERE UPPER(product_code) = UPPER(?)`,
+    [code]
+  );
+}
+
+/**
+ * Smart search:
+ * - Case-insensitive (UPPER) across supplier_name and product_code
+ * - If query is all digits, also matches codes where the digit sequence
+ *   appears anywhere in the numeric portion (e.g. "15" → "EM-0015", "EM-15")
+ */
 export async function searchProducts(query: string): Promise<Product[]> {
   const db = await getDatabase();
-  const q = `%${query.trim()}%`;
+  const trimmed = query.trim();
+  const upper = trimmed.toUpperCase();
+  const like = `%${upper}%`;
+
+  // If the query contains only digits, also do a numeric-flexible match
+  // by stripping non-digits from the product_code and comparing
+  const isNumericOnly = /^\d+$/.test(trimmed);
+
+  if (isNumericOnly) {
+    // Numeric search: '15' should match 'EM-0015', 'EM-15', 'TEST-0015'
+    // UPPER(product_code) LIKE '%15%' already matches 'EM-0015' since '0015' contains '15'
+    // Also try zero-padded variant (e.g. '15' → '0015') for 4-digit sequences
+    const paddedLike = `%${trimmed.padStart(Math.max(4, trimmed.length), '0')}%`;
+    return db.getAllAsync<Product>(
+      `SELECT * FROM PRODUCTS
+       WHERE UPPER(supplier_name) LIKE ?
+          OR UPPER(product_code) LIKE ?
+          OR UPPER(product_code) LIKE ?
+          OR UPPER(description) LIKE ?
+       ORDER BY supplier_name ASC, product_code ASC`,
+      [like, like, paddedLike, like]
+    );
+  }
+
   return db.getAllAsync<Product>(
     `SELECT * FROM PRODUCTS
-     WHERE product_code LIKE ?
-        OR supplier_name LIKE ?
-        OR description LIKE ?
+     WHERE UPPER(supplier_name) LIKE ?
+        OR UPPER(product_code) LIKE ?
+        OR UPPER(description) LIKE ?
      ORDER BY supplier_name ASC, product_code ASC`,
-    [q, q, q]
+    [like, like, like]
   );
 }
 
