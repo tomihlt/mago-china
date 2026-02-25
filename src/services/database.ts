@@ -40,10 +40,13 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase): Promise<void
     VALUES ('product_code_sequence', '1');
 
     INSERT OR IGNORE INTO SYSTEM_CONFIG (config_key, config_value)
-    VALUES ('product_code_prefix', 'EM-');
+    VALUES ('product_code_prefix', 'EM');
 
     INSERT OR IGNORE INTO SYSTEM_CONFIG (config_key, config_value)
     VALUES ('theme_mode', 'system');
+
+    -- Auto-fix any existing 'EM-' to 'EM' from previous versions
+    UPDATE SYSTEM_CONFIG SET config_value = 'EM' WHERE config_key = 'product_code_prefix' AND config_value = 'EM-';
   `);
 }
 

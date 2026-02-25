@@ -27,15 +27,15 @@ async function setConfigValue(key: string, value: string): Promise<void> {
 }
 
 export async function getPrefix(): Promise<string> {
-  return (await getConfigValue(PREFIX_KEY)) ?? 'EM-';
+  return (await getConfigValue(PREFIX_KEY)) ?? 'EM';
 }
 
 export async function setPrefix(prefix: string): Promise<void> {
   const normalized = prefix.toUpperCase().trim();
-  if (!/^[A-Z0-9]{2,5}-?$/.test(normalized) && !/^[A-Z0-9]{2,5}$/.test(normalized)) {
+  const clean = normalized.replace(/-/g, '');
+  if (!/^[A-Z0-9]{2,5}$/.test(clean)) {
     throw new Error('El prefijo debe tener entre 2 y 5 caracteres alfanuméricos');
   }
-  const clean = normalized.endsWith('-') ? normalized : `${normalized}-`;
   await setConfigValue(PREFIX_KEY, clean);
 }
 
@@ -61,7 +61,7 @@ export async function consumeNextProductCode(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     (async () => {
       try {
-        const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM-';
+        const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM';
         const seqStr = (await getConfigValue(SEQUENCE_KEY)) ?? '1';
         const seq = parseInt(seqStr, 10);
         // Pad to at least 4 digits; if seq already has more digits, keep them all
@@ -77,7 +77,7 @@ export async function consumeNextProductCode(): Promise<string> {
 }
 
 export async function previewNextProductCode(): Promise<string> {
-  const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM-';
+  const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM';
   const seqStr = (await getConfigValue(SEQUENCE_KEY)) ?? '1';
   const seq = parseInt(seqStr, 10);
   const padWidth = Math.max(4, String(seq).length);
@@ -92,4 +92,18 @@ export async function getThemeMode(): Promise<ThemeMode> {
 
 export async function setThemeMode(mode: ThemeMode): Promise<void> {
   await setConfigValue(THEME_KEY, mode);
+}
+
+export async function syncSequenceWithSkus(newCode: string): Promise<void> {
+  const prefix = (await getConfigValue(PREFIX_KEY)) ?? 'EM';
+  if (newCode.startsWith(prefix)) {
+    const numPart = newCode.substring(prefix.length);
+    if (/^\d+$/.test(numPart)) {
+      const num = parseInt(numPart, 10);
+      const currentSeq = await getSequence();
+      if (num >= currentSeq) {
+        await setSequence(num + 1);
+      }
+    }
+  }
 }

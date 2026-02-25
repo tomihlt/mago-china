@@ -8,9 +8,15 @@ import { ThemeMode } from '@/types';
 import { getDatabase } from '@/services/database';
 import { getThemeMode, setThemeMode as saveThemeMode } from '@/repositories/configRepository';
 import { useTheme } from '@/theme/ThemeContext';
+import * as SystemUI from 'expo-system-ui';
 
 function ThemedStack() {
   const { colors, isDark } = useTheme();
+
+  useEffect(() => {
+    // Avoid floating behind nav bar on android without background
+    SystemUI.setBackgroundColorAsync(colors.background);
+  }, [colors.background]);
   return (
     <Stack
       screenOptions={{

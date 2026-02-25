@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ToastAndroid,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { getPhotoFromCamera, getPhotoFromGallery, saveImage, savePhotoToGallery } from '@/services/imageService';
 import { createProduct, getProductByCode } from '@/repositories/productRepository';
-import { previewNextProductCode } from '@/repositories/configRepository';
+import { previewNextProductCode, syncSequenceWithSkus } from '@/repositories/configRepository';
 import { borderRadius, shadows, spacing } from '@/theme/spacing';
 import { fontSizes, fontWeights } from '@/theme/typography';
 import { CreateProductInput } from '@/types';
@@ -203,6 +204,7 @@ export default function CaptureScreen() {
       };
 
       await createProduct(input, code);
+      await syncSequenceWithSkus(code);
 
       // Reset form and load the next suggested code
       setImageUri(null);
@@ -210,10 +212,9 @@ export default function CaptureScreen() {
       setForm(INITIAL_FORM);
       await loadNextCode();
 
-      Alert.alert('¡Producto guardado!', `Código: ${code}`, [
-        { text: 'Ver Galería', onPress: () => router.replace('/(tabs)/') },
-        { text: 'Agregar otro', style: 'cancel' },
-      ]);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(`¡Producto ${code} guardado!`, ToastAndroid.SHORT);
+      }
     } catch (err) {
       Alert.alert(
         'Error al guardar',
@@ -321,7 +322,7 @@ export default function CaptureScreen() {
               required
               value={form.product_code}
               onChangeText={(t) => updateField('product_code', t.toUpperCase())}
-              placeholder="Ej: EM-0001"
+              placeholder="Ej: EM0001"
               autoCapitalize="characters"
               error={errors.product_code}
               hint="Autogenerado, podés modificarlo si es necesario"

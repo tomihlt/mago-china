@@ -52,9 +52,9 @@ function SectionCard({
 export default function SettingsScreen() {
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
 
-  const [prefix, setPrefixState] = useState('EM-');
+  const [prefix, setPrefixState] = useState('EM');
   const [sequence, setSequenceState] = useState('1');
-  const [preview, setPreview] = useState('EM-0001');
+  const [preview, setPreview] = useState('EM0001');
   const [prefixError, setPrefixError] = useState('');
   const [sequenceError, setSequenceError] = useState('');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
