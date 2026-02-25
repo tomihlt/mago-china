@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Product, UpdateProductInput } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { getProductById, updateProduct } from '@/repositories/productRepository';
@@ -42,6 +43,7 @@ interface FormErrors {
 export default function EditProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [product, setProduct] = useState<Product | null>(null);
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -176,12 +178,12 @@ export default function EditProductScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 64}
     >
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(spacing['3xl'], insets.bottom + spacing.lg) }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Product } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { getAllProducts, deleteProducts, searchProducts } from '@/repositories/productRepository';
@@ -24,19 +26,32 @@ import { fontSizes, fontWeights } from '@/theme/typography';
 export default function GalleryScreen() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const numColumns = width >= 600 ? 3 : 2;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const PAGE_SIZE = 20;
+
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadProducts = useCallback(async () => {
+  const loadInitialProducts = useCallback(async (query: string = '') => {
+    setIsLoading(true);
+    setSearchQuery(query);
     try {
-      const data = await getAllProducts();
+      const data = query.trim()
+        ? await searchProducts(query, PAGE_SIZE, 0)
+        : await getAllProducts(PAGE_SIZE, 0);
       setProducts(data);
+      setPage(2);
+      setHasMore(data.length === PAGE_SIZE);
     } catch {
       Alert.alert('Error', 'No se pudieron cargar los productos');
     } finally {
@@ -44,25 +59,53 @@ export default function GalleryScreen() {
     }
   }, []);
 
+  const loadMoreProducts = useCallback(async () => {
+    if (!hasMore || isLoading || isFetchingMore) return;
+    setIsFetchingMore(true);
+    try {
+      const offset = (page - 1) * PAGE_SIZE;
+      const data = searchQuery.trim()
+        ? await searchProducts(searchQuery, PAGE_SIZE, offset)
+        : await getAllProducts(PAGE_SIZE, offset);
+      setProducts(prev => [...prev, ...data]);
+      setPage(prev => prev + 1);
+      setHasMore(data.length === PAGE_SIZE);
+    } catch {
+      // Error silencioso en background
+    } finally {
+      setIsFetchingMore(false);
+    }
+  }, [hasMore, isLoading, isFetchingMore, page, searchQuery]);
+
   useFocusEffect(
     useCallback(() => {
-      loadProducts();
-      // Reset selection on focus change
+      const refreshCurrentData = async () => {
+        try {
+          const quantity = Math.max(products.length, PAGE_SIZE);
+          const data = searchQuery.trim()
+            ? await searchProducts(searchQuery, quantity, 0)
+            : await getAllProducts(quantity, 0);
+          setProducts(data);
+        } catch {
+          // ignorar
+        }
+      };
+
+      if (products.length === 0 && isLoading) {
+        loadInitialProducts(searchQuery);
+      } else if (products.length > 0) {
+        refreshCurrentData();
+      }
+
       setIsSelectionMode(false);
       setSelectedIds(new Set());
-    }, [loadProducts])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery])
   );
 
-  const handleSearch = useCallback(async (query: string) => {
-    try {
-      const data = query.trim()
-        ? await searchProducts(query)
-        : await getAllProducts();
-      setProducts(data);
-    } catch {
-      Alert.alert('Error', 'Error al buscar productos');
-    }
-  }, []);
+  const handleSearch = useCallback((query: string) => {
+    loadInitialProducts(query);
+  }, [loadInitialProducts]);
 
   const handleProductPress = useCallback(
     (product: Product) => {
@@ -102,13 +145,13 @@ export default function GalleryScreen() {
       await deleteProducts(Array.from(selectedIds));
       setIsSelectionMode(false);
       setSelectedIds(new Set());
-      await loadProducts();
+      await loadInitialProducts(searchQuery);
     } catch {
       Alert.alert('Error', 'No se pudieron eliminar los productos seleccionados');
     } finally {
       setIsDeleting(false);
     }
-  }, [selectedIds, loadProducts]);
+  }, [selectedIds, loadInitialProducts, searchQuery]);
 
   const renderItem = useCallback(
     ({ item }: { item: Product }) => (
@@ -157,12 +200,22 @@ export default function GalleryScreen() {
         keyExtractor={keyExtractor}
         numColumns={numColumns}
         key={numColumns} // re-mount when numColumns changes
-        contentContainerStyle={products.length === 0 ? styles.emptyList : styles.list}
-        onRefresh={loadProducts}
-        refreshing={isLoading}
+        contentContainerStyle={[
+          products.length === 0 ? styles.emptyList : styles.list,
+          { paddingBottom: insets.bottom + spacing['2xl'] }
+        ]}
+        onRefresh={() => loadInitialProducts(searchQuery)}
+        refreshing={isLoading && products.length === 0}
+        onEndReached={loadMoreProducts}
+        onEndReachedThreshold={0.5}
         initialNumToRender={12}
         maxToRenderPerBatch={12}
         windowSize={5}
+        ListFooterComponent={
+          isFetchingMore ? (
+            <ActivityIndicator size="large" color={colors.primary} style={{ margin: spacing.md }} />
+          ) : null
+        }
         ListEmptyComponent={
           !isLoading ? (
             <EmptyState

@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeContext';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -62,6 +63,7 @@ const INITIAL_FORM: FormState = {
 
 export default function CaptureScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   // ── State ──
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -206,10 +208,13 @@ export default function CaptureScreen() {
       await createProduct(input, code);
       await syncSequenceWithSkus(code);
 
-      // Reset form and load the next suggested code
+      // Reset form but keep the supplier_name
       setImageUri(null);
       setFromCamera(false);
-      setForm(INITIAL_FORM);
+      setForm(prev => ({
+        ...INITIAL_FORM,
+        supplier_name: prev.supplier_name,
+      }));
       await loadNextCode();
 
       if (Platform.OS === 'android') {
@@ -230,13 +235,13 @@ export default function CaptureScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 64}
     >
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(spacing['3xl'], insets.bottom + spacing.lg) }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         // Tarea 3: scrollEnabled always true so user can scroll with keyboard open

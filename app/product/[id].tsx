@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Product } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { getProductById, deleteProduct } from '@/repositories/productRepository';
@@ -49,16 +51,19 @@ function formatDate(iso: string): string {
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [product, setProduct] = useState<Product | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
-    getProductById(Number(id))
-      .then(setProduct)
-      .catch(() => Alert.alert('Error', 'No se pudo cargar el producto'));
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      getProductById(Number(id))
+        .then(setProduct)
+        .catch(() => Alert.alert('Error', 'No se pudo cargar el producto'));
+    }, [id])
+  );
 
   const handleEdit = useCallback(() => {
     router.push(`/product/edit/${id}`);
@@ -88,7 +93,10 @@ export default function ProductDetailScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Math.max(spacing['2xl'], insets.bottom + spacing.lg) }}
+      >
         {/* Product Image */}
         <Image source={{ uri: product.image_uri }} style={styles.image} resizeMode="cover" />
 
