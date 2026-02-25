@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/mago-icon-splash.svg",
+      "image": "./assets/mago-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1A3A8F"
     },
