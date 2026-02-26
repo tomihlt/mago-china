@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -58,25 +59,29 @@ export default function EditProductScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Keyboard-aware scroll (Tarea 3)
+  // ── Scroll + field refs (measureLayout) ──
   const scrollRef = useRef<ScrollView>(null);
-  const fieldYRef = useRef<Record<string, number>>({});
+  const supplierRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+  const priceRef = useRef<TextInput>(null);
+  const unitsRef = useRef<TextInput>(null);
+  const volumeRef = useRef<TextInput>(null);
+  const weightRef = useRef<TextInput>(null);
+  const observationsRef = useRef<TextInput>(null);
 
-  const handleInputFocus = useCallback((fieldKey: string) => {
-    const y = fieldYRef.current[fieldKey];
-    if (y != null) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: y - spacing.lg, animated: true });
-      }, 100);
-    }
+  const scrollToField = useCallback((inputRef: React.RefObject<TextInput | null>) => {
+    setTimeout(() => {
+      if (!inputRef.current || !scrollRef.current) return;
+      inputRef.current.measureLayout(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        scrollRef.current as any,
+        (_x, y) => {
+          scrollRef.current?.scrollTo({ y: Math.max(0, y - 80), animated: true });
+        },
+        () => {}
+      );
+    }, 200);
   }, []);
-
-  const captureFieldY = useCallback(
-    (fieldKey: string) => (event: any) => {
-      fieldYRef.current[fieldKey] = event.nativeEvent.layout.y;
-    },
-    []
-  );
 
   useEffect(() => {
     if (!id) return;
@@ -178,8 +183,8 @@ export default function EditProductScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 64}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
       <ScrollView
         ref={scrollRef}
@@ -221,96 +226,97 @@ export default function EditProductScreen() {
             </Text>
           </View>
 
-          <View onLayout={captureFieldY('supplier_name')}>
-            <Input
-              label="Nombre del Proveedor"
-              required
-              value={form.supplier_name}
-              onChangeText={(t) => updateField('supplier_name', t)}
-              placeholder="Ej: Proveedor S.A."
-              maxLength={200}
-              error={errors.supplier_name}
-              onFocus={() => handleInputFocus('supplier_name')}
-            />
-          </View>
+          <Input
+            ref={supplierRef}
+            label="Nombre del Proveedor"
+            required
+            value={form.supplier_name}
+            onChangeText={(t) => updateField('supplier_name', t)}
+            placeholder="Ej: Proveedor S.A."
+            maxLength={200}
+            error={errors.supplier_name}
+            onFocus={() => scrollToField(supplierRef)}
+          />
 
-          <View onLayout={captureFieldY('description')}>
-            <Input
-              label="Descripción"
-              value={form.description}
-              onChangeText={(t) => updateField('description', t)}
-              placeholder="Descripción del producto..."
-              multiline
-              numberOfLines={3}
-              maxLength={1000}
-              style={styles.multiline}
-              onFocus={() => handleInputFocus('description')}
-            />
-          </View>
+          <Input
+            ref={descriptionRef}
+            label="Descripción"
+            value={form.description}
+            onChangeText={(t) => updateField('description', t)}
+            placeholder="Descripción del producto..."
+            multiline
+            numberOfLines={3}
+            maxLength={1000}
+            style={styles.multiline}
+            onFocus={() => scrollToField(descriptionRef)}
+          />
 
           <View style={styles.row}>
-            <View style={styles.half} onLayout={captureFieldY('price')}>
+            <View style={styles.half}>
               <Input
+                ref={priceRef}
                 label="Precio"
                 value={form.price}
                 onChangeText={(t) => updateField('price', t)}
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 error={errors.price}
-                onFocus={() => handleInputFocus('price')}
+                onFocus={() => scrollToField(priceRef)}
               />
             </View>
-            <View style={styles.half} onLayout={captureFieldY('units_per_package')}>
+            <View style={styles.half}>
               <Input
+                ref={unitsRef}
                 label="Unidades/Bulto"
                 value={form.units_per_package}
                 onChangeText={(t) => updateField('units_per_package', t)}
                 placeholder="1"
                 keyboardType="number-pad"
                 error={errors.units_per_package}
-                onFocus={() => handleInputFocus('units_per_package')}
+                onFocus={() => scrollToField(unitsRef)}
               />
             </View>
           </View>
 
           <View style={styles.row}>
-            <View style={styles.half} onLayout={captureFieldY('volume')}>
+            <View style={styles.half}>
               <Input
+                ref={volumeRef}
                 label="Cubicaje (m³)"
                 value={form.volume}
                 onChangeText={(t) => updateField('volume', t)}
                 placeholder="0.000"
                 keyboardType="decimal-pad"
                 error={errors.volume}
-                onFocus={() => handleInputFocus('volume')}
+                onFocus={() => scrollToField(volumeRef)}
               />
             </View>
-            <View style={styles.half} onLayout={captureFieldY('weight')}>
+            <View style={styles.half}>
               <Input
+                ref={weightRef}
                 label="Peso (kg)"
                 value={form.weight}
                 onChangeText={(t) => updateField('weight', t)}
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 error={errors.weight}
-                onFocus={() => handleInputFocus('weight')}
+                onFocus={() => scrollToField(weightRef)}
               />
             </View>
           </View>
 
-          <View onLayout={captureFieldY('observations')}>
-            <Input
-              label="Observaciones"
-              value={form.observations}
-              onChangeText={(t) => updateField('observations', t)}
-              placeholder="Notas adicionales..."
-              multiline
-              numberOfLines={4}
-              maxLength={2000}
-              style={styles.multiline}
-              onFocus={() => handleInputFocus('observations')}
-            />
-          </View>
+          <Input
+            ref={observationsRef}
+            label="Observaciones"
+            value={form.observations}
+            onChangeText={(t) => updateField('observations', t)}
+            placeholder="Notas adicionales..."
+            multiline
+            numberOfLines={4}
+            maxLength={2000}
+            style={styles.multiline}
+            onFocus={() => scrollToField(observationsRef)}
+          />
 
           <View style={styles.actions}>
             <Button
