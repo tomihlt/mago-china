@@ -10,6 +10,18 @@ export async function getAllProducts(limit: number = 20, offset: number = 0): Pr
   );
 }
 
+/**
+ * Retrieves ALL products from the database without any LIMIT or OFFSET.
+ * Use this function exclusively for export operations (e.g. Excel export).
+ * Do NOT use for UI listing — use getAllProducts() with pagination instead.
+ */
+export async function getAllProductsForExport(): Promise<Product[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<Product>(
+    `SELECT * FROM PRODUCTS ORDER BY supplier_name ASC, product_code ASC`
+  );
+}
+
 export async function getProductById(id: number): Promise<Product | null> {
   const db = await getDatabase();
   return db.getFirstAsync<Product>(`SELECT * FROM PRODUCTS WHERE id = ?`, [id]);

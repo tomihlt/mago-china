@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeContext';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { getAllProducts } from '@/repositories/productRepository';
+import { getAllProductsForExport } from '@/repositories/productRepository';
 import {
   getPrefix,
   getSequence,
@@ -113,7 +113,7 @@ export default function SettingsScreen() {
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      const products = await getAllProducts();
+      const products = await getAllProductsForExport();
       if (products.length === 0) {
         Alert.alert('Sin datos', 'No hay productos para exportar.');
         return;
