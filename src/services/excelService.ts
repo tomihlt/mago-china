@@ -40,11 +40,9 @@ export async function exportToExcel(
 ): Promise<ExportResult> {
   const xlsx = await getXLSX();
 
-  // Sort: by supplier name, then by product code
+  // Sort: strictly by product code (prefix + numeric sequence)
   const sorted = [...products].sort((a, b) => {
-    const sup = a.supplier_name.localeCompare(b.supplier_name, 'es');
-    if (sup !== 0) return sup;
-    return a.product_code.localeCompare(b.product_code, 'es');
+    return a.product_code.localeCompare(b.product_code, 'es', { numeric: true });
   });
 
   // Build worksheet data
