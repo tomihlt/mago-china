@@ -2,7 +2,7 @@
   "expo": {
     "name": "El Mago China v2",
     "slug": "mago-china",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "scheme": "mago-china",
     "orientation": "default",
     "icon": "./assets/mago-icon.png",

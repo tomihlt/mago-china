@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -23,11 +23,101 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { spacing } from '@/theme/spacing';
 import { fontSizes, fontWeights } from '@/theme/typography';
 
+// ─── Types for the sectioned flat list ───────────────────────────────────────
+
+type DateHeaderItem = {
+  type: 'header';
+  label: string;
+  key: string;
+};
+
+type ProductRowItem = {
+  type: 'row';
+  products: Product[];
+  key: string;
+};
+
+type ListItem = DateHeaderItem | ProductRowItem;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDateLabel(dateStr: string): string {
+  // dateStr is 'YYYY-MM-DD' (the key extracted from created_at).
+  // ⚠️ IMPORTANT: new Date('YYYY-MM-DD') is parsed as UTC midnight by the
+  // ECMAScript spec, which shifts the date backwards in negative-offset
+  // timezones (e.g. UTC-3 → the previous calendar day at 21:00 local).
+  // To avoid this, we construct the date with the local-time constructor.
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // always local midnight
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(date, today)) return 'Hoy';
+  if (sameDay(date, yesterday)) return 'Ayer';
+
+  return date.toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function extractDateKey(dateStr: string): string {
+  // Returns 'YYYY-MM-DD' regardless of time component
+  return dateStr.split('T')[0].split(' ')[0];
+}
+
+/**
+ * Transforms a flat array of products (ordered by created_at DESC)
+ * into a flat list of DateHeader + ProductRow items suitable for FlatList.
+ * Each row holds up to `numColumns` products.
+ */
+const CELL_GAP = 3; // px — separación entre celdas estilo Google Photos
+
+function buildListItems(products: Product[], numColumns: number): ListItem[] {
+  if (products.length === 0) return [];
+
+  const sections: Map<string, Product[]> = new Map();
+
+  for (const product of products) {
+    const key = extractDateKey(product.created_at ?? '');
+    if (!sections.has(key)) sections.set(key, []);
+    sections.get(key)!.push(product);
+  }
+
+  const items: ListItem[] = [];
+
+  for (const [dateKey, group] of sections) {
+    const label = formatDateLabel(dateKey);
+    items.push({ type: 'header', label, key: `header-${dateKey}` });
+
+    for (let i = 0; i < group.length; i += numColumns) {
+      const rowProducts = group.slice(i, i + numColumns);
+      items.push({
+        type: 'row',
+        products: rowProducts,
+        key: `row-${dateKey}-${i}`,
+      });
+    }
+  }
+
+  return items;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function GalleryScreen() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const numColumns = width >= 600 ? 3 : 2;
+  const numColumns = width >= 600 ? 4 : 3;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +131,8 @@ export default function GalleryScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // ── Data fetching ────────────────────────────────────────────────────────
 
   const loadInitialProducts = useCallback(async (query: string = '') => {
     setIsLoading(true);
@@ -71,7 +163,7 @@ export default function GalleryScreen() {
       setPage(prev => prev + 1);
       setHasMore(data.length === PAGE_SIZE);
     } catch {
-      // Error silencioso en background
+      // Error silencioso en background fetch
     } finally {
       setIsFetchingMore(false);
     }
@@ -103,14 +195,24 @@ export default function GalleryScreen() {
     }, [searchQuery])
   );
 
-  const handleSearch = useCallback((query: string) => {
-    loadInitialProducts(query);
-  }, [loadInitialProducts]);
+  // ── Grouped list data ────────────────────────────────────────────────────
+
+  const listItems = useMemo(
+    () => buildListItems(products, numColumns),
+    [products, numColumns]
+  );
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
+  const handleSearch = useCallback(
+    (query: string) => { loadInitialProducts(query); },
+    [loadInitialProducts]
+  );
 
   const handleProductPress = useCallback(
     (product: Product) => {
       if (isSelectionMode) {
-        setSelectedIds((prev) => {
+        setSelectedIds(prev => {
           const next = new Set(prev);
           if (next.has(product.id)) next.delete(product.id);
           else next.add(product.id);
@@ -133,7 +235,7 @@ export default function GalleryScreen() {
     setSelectedIds(new Set());
   }, []);
 
-  const handleDeleteSelected = useCallback(async () => {
+  const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
     setDeleteModalVisible(true);
   }, [selectedIds]);
@@ -153,24 +255,51 @@ export default function GalleryScreen() {
     }
   }, [selectedIds, loadInitialProducts, searchQuery]);
 
+  // ── Render helpers ───────────────────────────────────────────────────────
+
   const renderItem = useCallback(
-    ({ item }: { item: Product }) => (
-      <ProductCard
-        product={item}
-        isSelected={selectedIds.has(item.id)}
-        isSelectionMode={isSelectionMode}
-        onPress={handleProductPress}
-        onLongPress={handleLongPress}
-      />
-    ),
-    [selectedIds, isSelectionMode, handleProductPress, handleLongPress]
+    ({ item }: { item: ListItem }) => {
+      if (item.type === 'header') {
+        return (
+          <View style={[styles.sectionHeader, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionHeaderText, { color: colors.textSecondary }]}>
+              {item.label}
+            </Text>
+          </View>
+        );
+      }
+
+      // Product row — fill up to numColumns slots
+      return (
+        <View style={styles.row}>
+          {item.products.map(product => (
+            <View key={String(product.id)} style={[styles.cellWrapper, { margin: CELL_GAP / 2 }]}>
+              <ProductCard
+                product={product}
+                isSelected={selectedIds.has(product.id)}
+                isSelectionMode={isSelectionMode}
+                onPress={handleProductPress}
+                onLongPress={handleLongPress}
+              />
+            </View>
+          ))}
+          {/* Phantom cells to keep grid alignment on last row */}
+          {Array.from({ length: numColumns - item.products.length }).map((_, i) => (
+            <View key={`phantom-${i}`} style={[styles.phantomCell, { margin: CELL_GAP / 2 }]} />
+          ))}
+        </View>
+      );
+    },
+    [colors, selectedIds, isSelectionMode, handleProductPress, handleLongPress, numColumns]
   );
 
-  const keyExtractor = useCallback((item: Product) => String(item.id), []);
+  const keyExtractor = useCallback((item: ListItem) => item.key, []);
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header actions */}
+      {/* Header: selection bar or search */}
       {isSelectionMode ? (
         <View style={[styles.selectionBar, { backgroundColor: colors.primary }]}>
           <TouchableOpacity onPress={handleCancelSelection} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -195,14 +324,12 @@ export default function GalleryScreen() {
       )}
 
       <FlatList
-        data={products}
+        data={listItems}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        numColumns={numColumns}
-        key={numColumns} // re-mount when numColumns changes
         contentContainerStyle={[
-          products.length === 0 ? styles.emptyList : styles.list,
-          { paddingBottom: insets.bottom + spacing['2xl'] }
+          listItems.length === 0 ? styles.emptyList : null,
+          { paddingBottom: insets.bottom + spacing['2xl'] },
         ]}
         onRefresh={() => loadInitialProducts(searchQuery)}
         refreshing={isLoading && products.length === 0}
@@ -252,11 +379,30 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: fontWeights.semibold,
   },
-  list: {
-    padding: spacing.xs,
-    paddingBottom: spacing['2xl'],
-  },
   emptyList: {
+    flex: 1,
+  },
+  /** Date section header — pill/badge with surface background for contrast */
+  sectionHeader: {
+    marginTop: 16,
+    marginBottom: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
+  sectionHeaderText: {
+    fontSize: fontSizes.sm,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: 0.2,
+  },
+  /** Each grid row — no horizontal padding so photos reach edges */
+  row: {
+    flexDirection: 'row',
+    marginHorizontal: CELL_GAP / 2,
+  },
+  cellWrapper: {
+    flex: 1,
+  },
+  phantomCell: {
     flex: 1,
   },
 });

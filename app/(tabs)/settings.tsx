@@ -253,7 +253,7 @@ export default function SettingsScreen() {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={[styles.appInfoText, { color: colors.textDisabled }]}>
-            Inventario El Mago v2.2.0
+            Inventario El Mago v2.2.1
           </Text>
         </View>
       </ScrollView>

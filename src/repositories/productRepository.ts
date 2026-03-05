@@ -5,7 +5,7 @@ import { CreateProductInput, Product, UpdateProductInput } from '@/types';
 export async function getAllProducts(limit: number = 20, offset: number = 0): Promise<Product[]> {
   const db = await getDatabase();
   return db.getAllAsync<Product>(
-    `SELECT * FROM PRODUCTS ORDER BY supplier_name ASC, product_code ASC LIMIT ? OFFSET ?`,
+    `SELECT * FROM PRODUCTS ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [limit, offset]
   );
 }
@@ -68,7 +68,7 @@ export async function searchProducts(query: string, limit: number = 20, offset: 
           OR UPPER(product_code) LIKE ?
           OR UPPER(product_code) LIKE ?
           OR UPPER(description) LIKE ?
-       ORDER BY supplier_name ASC, product_code ASC LIMIT ? OFFSET ?`,
+       ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [like, like, paddedLike, like, limit, offset]
     );
   }
@@ -78,7 +78,7 @@ export async function searchProducts(query: string, limit: number = 20, offset: 
      WHERE UPPER(supplier_name) LIKE ?
         OR UPPER(product_code) LIKE ?
         OR UPPER(description) LIKE ?
-     ORDER BY supplier_name ASC, product_code ASC LIMIT ? OFFSET ?`,
+     ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [like, like, like, limit, offset]
   );
 }
