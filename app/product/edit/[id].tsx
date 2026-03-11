@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Product, UpdateProductInput } from '@/types';
 import { useTheme } from '@/theme/ThemeContext';
 import { getProductById, updateProduct } from '@/repositories/productRepository';
-import { getPhotoFromCamera, getPhotoFromGallery, saveImage, deleteImage } from '@/services/imageService';
+import { getPhotoFromCamera, getPhotoFromGallery, saveImage, deleteImage, savePhotoToGallery } from '@/services/imageService';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { borderRadius, shadows, spacing } from '@/theme/spacing';
@@ -47,6 +47,7 @@ export default function EditProductScreen() {
   const insets = useSafeAreaInsets();
   const [product, setProduct] = useState<Product | null>(null);
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
+  const [fromCamera, setFromCamera] = useState(false);
   const [form, setForm] = useState<FormState>({
     supplier_name: '',
     description: '',
@@ -109,12 +110,18 @@ export default function EditProductScreen() {
 
   const handleCameraPress = useCallback(async () => {
     const uri = await getPhotoFromCamera();
-    if (uri) setNewImageUri(uri);
+    if (uri) {
+      setNewImageUri(uri);
+      setFromCamera(true);
+    }
   }, []);
 
   const handleGalleryPress = useCallback(async () => {
     const uri = await getPhotoFromGallery();
-    if (uri) setNewImageUri(uri);
+    if (uri) {
+      setNewImageUri(uri);
+      setFromCamera(false);
+    }
   }, []);
 
   const validate = (): boolean => {
@@ -146,6 +153,17 @@ export default function EditProductScreen() {
         const savedUri = await saveImage(newImageUri);
         await deleteImage(product.image_uri);
         imageUri = savedUri;
+
+        // Mirror to device gallery if photo came from camera (same as capture screen)
+        if (fromCamera) {
+          const saved = await savePhotoToGallery(savedUri, product.product_code);
+          if (!saved) {
+            Alert.alert(
+              'Permiso denegado',
+              'No se pudo guardar la foto en la galería del dispositivo. Los datos del producto se guardaron correctamente.',
+            );
+          }
+        }
       }
 
       const input: UpdateProductInput = {

@@ -22,6 +22,7 @@ import {
   setSequence,
 } from '@/repositories/configRepository';
 import { exportToExcel, shareExcel } from '@/services/excelService';
+import { backupImagesToGallery } from '@/services/imageService';
 import { borderRadius, shadows, spacing } from '@/theme/spacing';
 import { fontSizes, fontWeights } from '@/theme/typography';
 import { ThemeMode } from '@/types';
@@ -59,6 +60,8 @@ export default function SettingsScreen() {
   const [sequenceError, setSequenceError] = useState('');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [backupProgress, setBackupProgress] = useState<{current: number, total: number} | null>(null);
 
   const loadConfig = useCallback(async () => {
     const p = await getPrefix();
@@ -131,6 +134,37 @@ export default function SettingsScreen() {
       Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo generar el Excel');
     } finally {
       setIsExporting(false);
+    }
+  }, []);
+
+  const handleBackup = useCallback(async () => {
+    setIsBackingUp(true);
+    try {
+      const products = await getAllProductsForExport();
+      if (products.length === 0) {
+        Alert.alert('Sin imágenes', 'No hay productos para respaldar.');
+        return;
+      }
+
+      setBackupProgress({ current: 0, total: products.length });
+
+      const count = await backupImagesToGallery(products, (current, total) => {
+        setBackupProgress({ current, total });
+      });
+      
+      if (count === 0) {
+        Alert.alert('Sin imágenes', 'No hay imágenes para respaldar.');
+      } else {
+        Alert.alert(
+          '✓ Respaldo completado',
+          `${count} imagen${count !== 1 ? 'es' : ''} copiada${count !== 1 ? 's' : ''} a tu galería en el álbum ElMagoChina.`
+        );
+      }
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo completar el respaldo');
+    } finally {
+      setIsBackingUp(false);
+      setBackupProgress(null);
     }
   }, []);
 
@@ -250,10 +284,46 @@ export default function SettingsScreen() {
           />
         </SectionCard>
 
+        {/* Backup Section */}
+        <SectionCard title="Respaldo de Imágenes" icon="cloud-upload-outline">
+          <Text style={[styles.exportDesc, { color: colors.textSecondary }]}>
+            Copia todas las fotos de los productos a un nuevo álbum en la galería de tu dispositivo.
+          </Text>
+          
+          {isBackingUp && backupProgress && (
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBarBg, { backgroundColor: colors.border }]}>
+                <View 
+                  style={[
+                    styles.progressBarFill, 
+                    { 
+                      backgroundColor: colors.primary, 
+                      width: `${(backupProgress.current / backupProgress.total) * 100}%` 
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+                Copiando {backupProgress.current} de {backupProgress.total}...
+              </Text>
+            </View>
+          )}
+
+          <Button
+            label={isBackingUp ? 'Respaldando...' : 'Respaldar imágenes'}
+            variant="primary"
+            size="lg"
+            isLoading={isBackingUp}
+            disabled={isBackingUp}
+            leftIcon={!isBackingUp ? <Ionicons name="images-outline" size={20} color="#fff" /> : undefined}
+            onPress={handleBackup}
+          />
+        </SectionCard>
+
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={[styles.appInfoText, { color: colors.textDisabled }]}>
-            Inventario El Mago v2.2.1
+            Inventario El Mago v2.3.0
           </Text>
         </View>
       </ScrollView>
@@ -325,6 +395,24 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     lineHeight: 22,
     marginBottom: spacing.md,
+  },
+  progressContainer: {
+    marginBottom: spacing.md,
+  },
+  progressBarBg: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: spacing.xs,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: fontSizes.sm,
+    textAlign: 'center',
+    fontWeight: fontWeights.medium,
   },
   appInfo: {
     alignItems: 'center',
